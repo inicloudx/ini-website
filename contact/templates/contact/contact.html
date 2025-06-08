@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Contact Us – iNiXR Technologies{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto py-16 px-4 text-center">
+    <h1 class="text-4xl md:text-5xl font-bold mb-6">Contact Us</h1>
+    <p class="text-lg md:text-xl mb-8">
+        Got questions or want to discuss partnership opportunities? We're here to help!
+    </p>
+    <p class="text-lg italic text-gray-400">
+        Transforming Imagination into Immersive Reality.
+    </p>
+
+    <!-- Contact Form -->
+    <form action="#" method="post" class="bg-gray-800 rounded-lg shadow-lg p-6 mt-8 text-left max-w-md mx-auto">
+        <!-- Note: Form handling will be implemented later -->
+        <div class="mb-4">
+            <label for="name" class="block text-sm font-medium mb-1">Your Name</label>
+            <input type="text" id="name" name="name" class="w-full px-4 py-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="Enter your name" disabled>
+        </div>
+        <div class="mb-4">
+            <label for="email" class="block text-sm font-medium mb-1">Your Email</label>
+            <input type="email" id="email" name="email" class="w-full px-4 py-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="Enter your email" disabled>
+        </div>
+        <div class="mb-4">
+            <label for="message" class="block text-sm font-medium mb-1">Message</label>
+            <textarea id="message" name="message" rows="4" class="w-full px-4 py-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="Your message" disabled></textarea>
+        </div>
+        <button type="submit" class="bg-gradient-to-r from-green-500 to-teal-500 hover:from-teal-500 hover:to-green-500 text-white py-3 px-6 rounded-full shadow-lg transition duration-300 inline-block" disabled>
+            Contact Us (Coming Soon)
+        </button>
+    </form>
+</section>
+{% endblock %}

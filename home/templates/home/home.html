@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>iNiXR Technologies – Where Reality Meets Imagination</title>
+
+    <!-- Tailwind CSS via CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Custom CSS (Optional) -->
+    <link href="{% static 'css/custom.css' %}" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+
+<!-- Header Section -->
+<header class="text-center py-16">
+    <img src="{% static 'images/inixr_logo.png' %}" alt="iNiXR Logo" class="mx-auto w-32 h-32 animate-bounce">
+
+    <h1 class="text-4xl md:text-5xl font-bold mt-6">Where Reality Meets Imagination</h1>
+    <p class="mt-4 text-lg md:text-xl max-w-xl mx-auto px-4">
+        Welcome to iNiXR Technologies — Crafting immersive VR, AR, and XR solutions that bridge imagination with
+        reality.
+    </p>
+    <p class="mt-2 text-lg italic text-gray-400">
+        We Transforming Imagination into Immersive Reality
+    </p>
+
+    <!-- Call to Action Buttons -->
+    <div class="mt-8 space-x-4">
+        <a href="/solutions/"
+           class="bg-gradient-to-r from-blue-500 to-green-500 hover:from-green-500 hover:to-blue-500 text-white py-3 px-6 rounded-full shadow-lg transition duration-300 inline-block">
+            Explore AR Solutions
+        </a>
+        <a href="/portfolio/product-showcase/"
+           class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-indigo-600 hover:to-purple-600 text-white py-3 px-6 rounded-full shadow-lg transition duration-300 inline-block">
+            Product Showcase
+        </a>
+        <a href="/partner/"
+           class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-indigo-600 hover:to-blue-600 text-white py-3 px-6 rounded-full shadow-lg transition duration-300 inline-block">
+            Partner with Us
+        </a>
+
+        </a>
+        <a href="/about/"
+           class="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-orange-500 hover:to-yellow-500 text-white py-3 px-6 rounded-full shadow-lg transition duration-300 inline-block">
+            About Us
+        </a>
+
+    </div>
+</header>
+
+<!-- Footer -->
+<footer class="text-center py-6 text-gray-400 text-sm">
+    &copy; 2025 iNiXR Technologies. All rights reserved.
+</footer>
+
+</body>
+</html>

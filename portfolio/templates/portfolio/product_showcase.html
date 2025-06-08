@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Product Showcase – iNiXR Technologies{% endblock %}
+
+{% block content %}
+<section class="max-w-5xl mx-auto py-16 px-4 text-center">
+    <h1 class="text-4xl md:text-5xl font-bold mb-6">Product Showcase</h1>
+    <p class="text-lg md:text-xl mb-8">
+        Explore our latest AR, VR, and XR solutions in action. Stay informed with the latest releases and innovations from iNiXR Technologies.
+    </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {% for product in products %}
+        <div class="bg-gray-800 rounded-lg shadow-lg p-6 text-left">
+            <!-- Title -->
+            <h2 class="text-2xl font-semibold mb-4">{{ product.title }}</h2>
+
+            <!-- YouTube Video -->
+            {% if product.youtube_link %}
+                <div class="mb-4">
+                    <iframe class="w-full rounded" src="{{ product.youtube_link }}" frameborder="0" allowfullscreen></iframe>
+                </div>
+            {% endif %}
+
+            <!-- Category and Status -->
+            <p class="text-sm text-gray-400 mb-2">
+                Category: {{ product.category }} | Status: {{ product.status }} | Updated: {{ product.updated_at|date:"F j, Y" }}
+            </p>
+
+            <!-- App Description -->
+            <h3 class="text-lg font-semibold mt-4 mb-2">App Description:</h3>
+            <p class="mb-4">
+                {{ product.description|truncatechars:250 }}
+            </p>
+
+            <!-- Where to Buy -->
+            <h3 class="text-lg font-semibold mt-4 mb-2">Want to Buy this Product?</h3>
+            <div class="flex flex-wrap gap-4 mt-2">
+                {% if product.amazon_link %}
+                    <a href="{{ product.amazon_link }}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-full transition duration-300">Buy on Amazon.in</a>
+                {% endif %}
+                {% if product.flipkart_link %}
+                    <a href="{{ product.flipkart_link }}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-full transition duration-300">Buy on Flipkart</a>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-gray-400 col-span-full">No products available at the moment. Please check back soon!</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
