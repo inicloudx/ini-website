@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ product.title }} – iNiXR Technologies{% endblock %}
+
+{% block content %}
+<section class="max-w-5xl mx-auto py-16 px-4 text-left">
+    <h1 class="text-4xl font-bold text-center mb-6">{{ product.title }}</h1>
+
+    <!-- Video Section -->
+    {% if product.video %}
+    <div class="mb-6 mt-4 flex justify-center">
+        <video controls
+               width="320"
+               height="570"
+               class="rounded-lg shadow-lg"
+               style="object-fit: contain;">
+               poster="{% static 'images/video_placeholder.jpg' %}">
+            <source src="{{ product.video.url }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+    {% elif product.youtube_link %}
+    <div class="mb-6 mx-auto w-full max-w-2xl rounded-lg overflow-hidden shadow-lg mt-4">
+        <iframe class="w-full h-[360px]"
+                src="{{ product.youtube_link }}"
+                frameborder="0"
+                allowfullscreen>
+        </iframe>
+    </div>
+    {% endif %}
+
+
+    <!-- Metadata -->
+    <div class="text-sm text-gray-400 mb-4 text-center">
+        <span><strong>Category:</strong> {{ product.category }}</span> |
+        <span><strong>Status:</strong> {{ product.status }}</span> |
+        <span><strong>Last Updated:</strong> {{ product.updated_at|date:"F j, Y" }}</span>
+    </div>
+
+    <!-- Description -->
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-6">
+        <h2 class="text-xl font-semibold text-white mb-3">App Description</h2>
+        <p class="text-gray-300 leading-relaxed">{{ product.description }}</p>
+    </div>
+
+    <!-- Usage -->
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-6">
+        <h2 class="text-xl font-semibold text-white mb-3">Usage</h2>
+        <p class="text-gray-300">
+            This app is ideal for educational AR/VR demos, product showcases, or immersive brand experiences. Designed
+            to scale across mobile and web platforms.
+        </p>
+    </div>
+
+    <!-- Buy Directly -->
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-6">
+        <h2 class="text-xl font-semibold text-white mb-3">Buy Directly</h2>
+        <p class="text-gray-300 mb-2">Want to purchase directly from iNiXR?</p>
+        <a href="https://wa.me/918825782388" target="_blank"
+           class="inline-block bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-2 rounded-full transition">
+            Chat on WhatsApp (8825782388)
+        </a>
+
+        {% if product.purchase_links.all %}
+        <div class="mt-6">
+            <h3 class="text-lg font-semibold text-white mb-3">Other Purchase Options</h3>
+            <div class="flex flex-wrap gap-4">
+                {% for link in product.purchase_links.all %}
+                <a href="{{ link.url }}" target="_blank"
+                   class="bg-{{ link.button_color }}-600 hover:bg-{{ link.button_color }}-700 text-white py-2 px-4 rounded-full transition duration-300">
+                    {{ link.label }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Partnership -->
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-10">
+        <h2 class="text-xl font-semibold text-white mb-3">Partnership Opportunities</h2>
+        <p class="text-gray-300 mb-4">
+            We welcome partnership proposals for marketing, white-label licensing, and reseller distribution for {{
+            product.title }}.
+        </p>
+        <a href="{% url 'partner:partnerpage' %}"
+           class="inline-block bg-teal-600 hover:bg-teal-700 text-white font-medium px-6 py-2 rounded-full transition">
+            Explore Partnership Options
+        </a>
+    </div>
+
+    <!-- Back Button -->
+    <div class="text-center">
+        <a href="{% url 'portfolio:product_showcase' %}"
+           class="text-sm text-gray-400 hover:text-white underline transition duration-300">
+            ← Back to Product Showcase
+        </a>
+    </div>
+</section>
+{% endblock %}

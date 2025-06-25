@@ -11,37 +11,54 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         {% for product in products %}
-        <div class="bg-gray-800 rounded-lg shadow-lg p-6 text-left">
-            <!-- Title -->
-            <h2 class="text-2xl font-semibold mb-4">{{ product.title }}</h2>
+        <div class="bg-gray-800 rounded-xl shadow-2xl p-6 text-left hover:shadow-gray-700 transition duration-300 h-full flex flex-col justify-between">
+            <div>
+                <h2 class="text-2xl font-semibold mb-4 text-white">{{ product.title }}</h2>
 
-            <!-- YouTube Video -->
-            {% if product.youtube_link %}
-                <div class="mb-4">
-                    <iframe class="w-full rounded" src="{{ product.youtube_link }}" frameborder="0" allowfullscreen></iframe>
+                <!-- Video Preview (click to go to detail page) -->
+                {% if product.video %}
+                <div class="mb-4 cursor-pointer" onclick="window.location.href='{% url 'portfolio:product_detail' product.pk %}'">
+                    <video muted
+                           playsinline
+                           preload="metadata"
+                           class="w-full h-48 object-cover rounded-lg shadow-sm hover:shadow-lg transition"
+                           poster="{% static 'images/video_placeholder.jpg' %}"
+                           style="pointer-events: none;">
+                        <source src="{{ product.video.url }}#t=0.5" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
                 </div>
-            {% endif %}
-
-            <!-- Category and Status -->
-            <p class="text-sm text-gray-400 mb-2">
-                Category: {{ product.category }} | Status: {{ product.status }} | Updated: {{ product.updated_at|date:"F j, Y" }}
-            </p>
-
-            <!-- App Description -->
-            <h3 class="text-lg font-semibold mt-4 mb-2">App Description:</h3>
-            <p class="mb-4">
-                {{ product.description|truncatechars:250 }}
-            </p>
-
-            <!-- Where to Buy -->
-            <h3 class="text-lg font-semibold mt-4 mb-2">Want to Buy this Product?</h3>
-            <div class="flex flex-wrap gap-4 mt-2">
-                {% if product.amazon_link %}
-                    <a href="{{ product.amazon_link }}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-full transition duration-300">Buy on Amazon.in</a>
+                {% elif product.youtube_link %}
+                <div class="mb-4 cursor-pointer" onclick="window.location.href='{% url 'portfolio:product_detail' product.pk %}'">
+                    <iframe class="w-full h-48 rounded-lg shadow-sm hover:shadow-lg transition"
+                            src="{{ product.youtube_link }}"
+                            frameborder="0"
+                            allowfullscreen
+                            style="pointer-events: none;">
+                    </iframe>
+                </div>
                 {% endif %}
-                {% if product.flipkart_link %}
-                    <a href="{{ product.flipkart_link }}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-full transition duration-300">Buy on Flipkart</a>
-                {% endif %}
+
+                <!-- Meta Info -->
+                <p class="text-sm text-gray-400 mb-2">
+                    <strong>Category:</strong> {{ product.category }} |
+                    <strong>Status:</strong> {{ product.status }} |
+                    <strong>Updated:</strong> {{ product.updated_at|date:"F j, Y" }}
+                </p>
+
+                <!-- Description -->
+                <h3 class="text-lg font-semibold mt-4 mb-2 text-gray-200">App Description:</h3>
+                <p class="mb-4 text-gray-300">
+                    {{ product.description|truncatechars:250 }}
+                </p>
+            </div>
+
+            <!-- View Details Button -->
+            <div class="mt-auto pt-4">
+                <a href="{% url 'portfolio:product_detail' product.pk %}"
+                   class="bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-full transition duration-300 inline-block">
+                    View Details
+                </a>
             </div>
         </div>
         {% empty %}
