@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-b%0oo!i(lms@i!ng#7d3ph5kg^s)h452(!evjf&7)rjjp2b0!m
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['inixr.com', 'www.inixr.com', '127.0.0.1']
+ALLOWED_HOSTS = ['inixr.com', 'www.inixr.com', '127.0.0.1','localhost']
 
 
 # Application definition
@@ -142,3 +142,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://inixr.com",
+]
