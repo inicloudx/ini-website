@@ -23,4 +23,6 @@ ENV/
 Thumbs.db
 
 
-
+docker-compose.yml
+Dockerfile
+requiremts.txt
