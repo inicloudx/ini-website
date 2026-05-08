@@ -152,8 +152,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 _csrf = os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', 'https://inixr.com,https://www.inixr.com')
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf.split(',') if o.strip()]
 
-# ── Production security flags (auto-enable when DEBUG=False) ──
-if not DEBUG:
+# ── Production security flags ──────────────────────────────────
+# SSL redirect only when DJANGO_SSL_REDIRECT=True (set after certs are ready)
+if os.environ.get('DJANGO_SSL_REDIRECT', 'False') == 'True':
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
