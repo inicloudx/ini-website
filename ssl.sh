@@ -1,5 +1,5 @@
 #!/bin/bash
-# iNiXR SSL Certificate Setup - Run this on Oracle Cloud server
+# iNiXR SSL Certificate Setup
 set -e
 
 DOMAIN="inixr.com"
@@ -8,8 +8,11 @@ EMAIL="inicloudx@gmail.com"
 
 echo "Getting free SSL certificate for $DOMAIN and $WWW ..."
 
-docker compose run --rm --entrypoint "" certbot \
-  certbot certonly \
+# Run certbot directly with docker run (bypasses entrypoint issue)
+docker run --rm \
+  -v ini-website_certbot_certs:/etc/letsencrypt \
+  -v ini-website_certbot_www:/var/www/certbot \
+  certbot/certbot:latest certonly \
   --webroot \
   -w /var/www/certbot \
   -d "$DOMAIN" \
@@ -19,4 +22,5 @@ docker compose run --rm --entrypoint "" certbot \
   --no-eff-email \
   --verbose
 
-echo "SSL certificate obtained successfully!"
+echo ""
+echo "SSL certificate obtained! Now enabling HTTPS..."
