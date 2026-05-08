@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Product Showcase - iNiXR Technologies{% endblock %}
+
+{% block content %}
+<section class="section-container">
+
+    <!-- Header -->
+    <div class="text-center mb-12">
+        <p class="reveal text-sm uppercase tracking-widest mb-4" style="font-family:'Exo 2',sans-serif;color:var(--neon-cyan);letter-spacing:0.3em;">Our Products</p>
+        <h1 class="heading-glow heading-lg reveal reveal-delay-1 mb-4">Product Showcase</h1>
+        <p class="reveal reveal-delay-2 text-lg max-w-2xl mx-auto" style="color:var(--text-secondary);">
+            Explore our latest AR, VR, and XR solutions in action. Experience innovation at its finest.
+        </p>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="reveal reveal-delay-2 flex flex-wrap justify-center gap-3 mb-12">
+        <button class="filter-tab active" onclick="filterProducts('all', this)">All</button>
+        <button class="filter-tab" onclick="filterProducts('AR', this)">AR</button>
+        <button class="filter-tab" onclick="filterProducts('VR', this)">VR</button>
+        <button class="filter-tab" onclick="filterProducts('XR', this)">XR</button>
+    </div>
+
+    <hr class="divider-glow reveal">
+
+    <!-- Products Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12" id="productsGrid">
+        {% for product in products %}
+        <div class="glass-card product-card reveal {% cycle 'reveal-delay-1' 'reveal-delay-2' 'reveal-delay-3' 'reveal-delay-4' %}" data-category="{{ product.category }}" style="padding:0;overflow:hidden;">
+
+            <!-- Video / Media -->
+            {% if product.video %}
+            <div class="video-container cursor-pointer" onclick="window.location.href='{% url 'portfolio:product_detail' product.pk %}'" style="border-radius:20px 20px 0 0;border:none;">
+                <video muted playsinline preload="metadata"
+                       class="w-full object-cover"
+                       style="height:220px;pointer-events:none;"
+                       onmouseenter="this.play()" onmouseleave="this.pause()">
+                    <source src="{{ product.video.url }}#t=0.5" type="video/mp4">
+                </video>
+            </div>
+            {% elif product.youtube_link %}
+            <div class="video-container cursor-pointer" onclick="window.location.href='{% url 'portfolio:product_detail' product.pk %}'" style="border-radius:20px 20px 0 0;border:none;">
+                <iframe class="w-full" style="height:220px;pointer-events:none;"
+                        src="{{ product.youtube_link }}"
+                        frameborder="0" allowfullscreen></iframe>
+            </div>
+            {% endif %}
+
+            <!-- Content -->
+            <div class="p-6">
+                <!-- Badges -->
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="badge badge-{% if product.category == 'AR' %}ar{% elif product.category == 'VR' %}vr{% else %}xr{% endif %}">{{ product.category }}</span>
+                    <span class="badge {% if product.status == 'Beta' %}badge-beta{% else %}badge-status{% endif %}">{{ product.status }}</span>
+                </div>
+
+                <h2 class="text-xl font-bold mb-3" style="font-family:'Orbitron',sans-serif;color:var(--text-primary);">{{ product.title }}</h2>
+
+                <p class="mb-4" style="color:var(--text-secondary);font-size:0.9rem;line-height:1.7;">
+                    {{ product.description|truncatechars:200 }}
+                </p>
+
+                <div class="flex items-center justify-between">
+                    <span class="text-xs" style="color:var(--text-secondary);">Updated {{ product.updated_at|date:"M j, Y" }}</span>
+                    <a href="{% url 'portfolio:product_detail' product.pk %}" class="btn-futuristic btn-outline" style="padding:0.4rem 1rem;font-size:0.7rem;">
+                        View Details
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-16">
+            <div class="icon-circle mx-auto mb-4" style="width:80px;height:80px;">
+                <svg width="36" height="36" fill="none" stroke="var(--neon-cyan)" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            </div>
+            <p class="text-lg" style="color:var(--text-secondary);">No products available yet.</p>
+            <p class="text-sm mt-2" style="color:var(--text-secondary);opacity:0.6;">Check back soon for exciting new launches!</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function filterProducts(category, btn) {
+    // Update active tab
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+
+    // Filter cards
+    document.querySelectorAll('.product-card').forEach(card => {
+        if (category === 'all' || card.dataset.category === category) {
+            card.style.display = '';
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.transition = 'all 0.4s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 50);
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+</script>
+{% endblock %}

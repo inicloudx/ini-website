@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Solutions - iNiXR Technologies{% endblock %}
+
+{% block content %}
+<section class="section-container text-center">
+
+    <!-- Section Header -->
+    <p class="reveal text-sm uppercase tracking-widest mb-4" style="font-family:'Exo 2',sans-serif;color:var(--neon-cyan);letter-spacing:0.3em;">What We Build</p>
+    <h1 class="heading-glow heading-lg reveal reveal-delay-1 mb-4">Our Solutions</h1>
+    <p class="reveal reveal-delay-2 text-lg mb-12 max-w-2xl mx-auto" style="color:var(--text-secondary);">
+        Cutting-edge AR, VR & XR solutions that push the boundaries of immersive technology across industries.
+    </p>
+
+    <hr class="divider-glow reveal reveal-delay-2">
+
+    <!-- Solutions Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+
+        <!-- Card 1: AR for Education -->
+        <div class="holo-card text-center reveal reveal-delay-1" style="padding:2.5rem 2rem;">
+            <div class="icon-circle">
+                <svg width="28" height="28" fill="none" stroke="var(--neon-cyan)" stroke-width="1.5" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+            </div>
+            <span class="badge badge-ar mb-4">AR</span>
+            <h3 class="heading-md mb-3" style="font-family:'Orbitron',sans-serif;color:var(--text-primary);">AR for Education</h3>
+            <p style="color:var(--text-secondary);font-size:0.95rem;line-height:1.7;">
+                Revolutionize learning with immersive AR experiences that bring educational content to life. Interactive 3D models, virtual labs, and spatial learning.
+            </p>
+        </div>
+
+        <!-- Card 2: AR for E-Commerce -->
+        <div class="holo-card text-center reveal reveal-delay-2" style="padding:2.5rem 2rem;">
+            <div class="icon-circle">
+                <svg width="28" height="28" fill="none" stroke="var(--neon-cyan)" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+            </div>
+            <span class="badge badge-ar mb-4">AR</span>
+            <h3 class="heading-md mb-3" style="font-family:'Orbitron',sans-serif;color:var(--text-primary);">AR for E-Commerce</h3>
+            <p style="color:var(--text-secondary);font-size:0.95rem;line-height:1.7;">
+                Enhance customer engagement with interactive product visualizations, virtual try-ons, and WebAR-powered shopping experiences.
+            </p>
+        </div>
+
+        <!-- Card 3: VR for Heritage Sites -->
+        <div class="holo-card text-center reveal reveal-delay-3" style="padding:2.5rem 2rem;">
+            <div class="icon-circle">
+                <svg width="28" height="28" fill="none" stroke="var(--neon-purple)" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 21h18M3 7v1a3 3 0 006 0V7M15 7v1a3 3 0 006 0V7M6 21V10M18 21V10M12 21V14M9 7h6"/><path d="M12 3L3 7h18L12 3z"/></svg>
+            </div>
+            <span class="badge badge-vr mb-4">VR</span>
+            <h3 class="heading-md mb-3" style="font-family:'Orbitron',sans-serif;color:var(--text-primary);">VR for Heritage Sites</h3>
+            <p style="color:var(--text-secondary);font-size:0.95rem;line-height:1.7;">
+                Experience historical landmarks in stunning detail. Preserving culture through immersive virtual reality tours and digital twins.
+            </p>
+        </div>
+
+        <!-- Card 4: XR for Therapy -->
+        <div class="holo-card text-center reveal reveal-delay-4" style="padding:2.5rem 2rem;">
+            <div class="icon-circle">
+                <svg width="28" height="28" fill="none" stroke="var(--neon-green)" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+            </div>
+            <span class="badge badge-xr mb-4">XR</span>
+            <h3 class="heading-md mb-3" style="font-family:'Orbitron',sans-serif;color:var(--text-primary);">XR for Therapy & Rehab</h3>
+            <p style="color:var(--text-secondary);font-size:0.95rem;line-height:1.7;">
+                Empower patients with engaging XR therapies that accelerate recovery and improve outcomes through immersive rehabilitation programs.
+            </p>
+        </div>
+
+        <!-- Card 5: Interactive AR Marketing -->
+        <div class="holo-card text-center reveal reveal-delay-5" style="padding:2.5rem 2rem;">
+            <div class="icon-circle">
+                <svg width="28" height="28" fill="none" stroke="var(--neon-cyan)" stroke-width="1.5" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <span class="badge badge-ar mb-4">AR</span>
+            <h3 class="heading-md mb-3" style="font-family:'Orbitron',sans-serif;color:var(--text-primary);">Interactive AR Marketing</h3>
+            <p style="color:var(--text-secondary);font-size:0.95rem;line-height:1.7;">
+                Captivate your audience with AR-enhanced marketing - from business cards and product demos to interactive ads and immersive campaigns.
+            </p>
+        </div>
+
+        <!-- Card 6: Personalized AR -->
+        <div class="holo-card text-center reveal reveal-delay-6" style="padding:2.5rem 2rem;">
+            <div class="icon-circle">
+                <svg width="28" height="28" fill="none" stroke="var(--neon-purple)" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            </div>
+            <span class="badge badge-ar mb-4">AR</span>
+            <h3 class="heading-md mb-3" style="font-family:'Orbitron',sans-serif;color:var(--text-primary);">Personalized AR Experiences</h3>
+            <p style="color:var(--text-secondary);font-size:0.95rem;line-height:1.7;">
+                Bring memories to life with personalized AR - dynamic photo frames, AR videos, and customized greeting cards that create unforgettable moments.
+            </p>
+        </div>
+
+    </div>
+
+    <!-- CTA -->
+    <div class="reveal mt-16 text-center">
+        <p class="mb-6" style="color:var(--text-secondary);font-size:1.1rem;">Ready to transform your business with immersive technology?</p>
+        <a href="/contact/" class="btn-futuristic btn-primary">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            Get Started
+        </a>
+    </div>
+
+</section>
+{% endblock %}

@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python manage.py runserver)",
+      "Bash(py manage.py runserver)",
+      "Bash(python3 manage.py runserver)",
+      "Bash(ls -d C:/ini_website/ini-website-main/venv* C:/ini_website/ini-website-main/.venv* C:/ini_website/ini-website-main/env*)",
+      "Bash(py --version)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:8000/)",
+      "Bash(taskkill //F //IM python.exe)",
+      "Bash(git config *)",
+      "Bash(git add *)"
+    ]
+  }
+}

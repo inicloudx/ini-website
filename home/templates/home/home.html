@@ -1,0 +1,213 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iNiXR Technologies - Where Reality Meets Imagination</title>
+    <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Exo+2:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{% static 'css/custom.css' %}" rel="stylesheet">
+</head>
+<body class="scanlines">
+
+<!-- Particle Background -->
+<canvas id="particles-canvas"></canvas>
+
+<!-- Floating Orbs -->
+<div class="orb orb-cyan" style="width:500px;height:500px;top:5%;right:-15%;"></div>
+<div class="orb orb-purple" style="width:450px;height:450px;bottom:10%;left:-12%;animation-delay:-4s;"></div>
+<div class="orb orb-pink" style="width:300px;height:300px;top:60%;right:20%;animation-delay:-2s;"></div>
+
+<!-- Hero Section - Full Screen -->
+<section style="position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;">
+
+    <!-- Logo with glow -->
+    <div class="float mb-8">
+        <img src="{% static 'images/inixr_logo.png' %}" alt="iNiXR Technologies" class="w-28 h-28 mx-auto logo-glow" style="border-radius:50%;">
+    </div>
+
+    <!-- Tagline above heading -->
+    <p class="reveal text-sm uppercase tracking-widest mb-4" style="font-family:'Exo 2',sans-serif;color:var(--neon-cyan);letter-spacing:0.3em;">
+        World-Class AR / VR / XR Solutions
+    </p>
+
+    <!-- Main Heading -->
+    <h1 class="heading-glow heading-xl reveal reveal-delay-1 mb-6" style="max-width:900px;">
+        Where Reality Meets<br>Imagination
+    </h1>
+
+    <!-- Subtitle with typing effect -->
+    <p class="reveal reveal-delay-2 text-xl md:text-2xl mb-2" style="font-family:'Exo 2',sans-serif;color:var(--text-secondary);max-width:650px;">
+        We Transform Imagination into Immersive Reality
+    </p>
+
+    <!-- Animated subtitle line -->
+    <div class="reveal reveal-delay-3 flex items-center gap-3 mb-12 justify-center">
+        <span style="width:40px;height:1px;background:var(--neon-cyan);display:inline-block;"></span>
+        <span class="text-sm uppercase tracking-widest" style="font-family:'Exo 2',sans-serif;color:var(--text-secondary);">Experience the Future Today</span>
+        <span style="width:40px;height:1px;background:var(--neon-purple);display:inline-block;"></span>
+    </div>
+
+    <!-- CTA Buttons -->
+    <div class="reveal reveal-delay-4 flex flex-wrap justify-center gap-4">
+        <a href="/solutions/" class="btn-futuristic btn-primary">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Explore AR Solutions
+        </a>
+        <a href="/portfolio/product-showcase/" class="btn-futuristic btn-neon-purple">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            Product Showcase
+        </a>
+        <a href="/partner/" class="btn-futuristic btn-outline">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+            Partner with Us
+        </a>
+        <a href="/about/" class="btn-futuristic btn-glass">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            About Us
+        </a>
+    </div>
+
+    <!-- Scroll indicator -->
+    <div class="reveal reveal-delay-5 mt-16" style="animation:float 3s ease-in-out infinite;">
+        <svg width="24" height="24" fill="none" stroke="var(--neon-cyan)" stroke-width="1.5" viewBox="0 0 24 24" style="opacity:0.5;"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section style="position:relative;z-index:1;padding:4rem 1.5rem;">
+    <div class="max-w-5xl mx-auto">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="glass-card text-center p-6 reveal">
+                <div class="stat-number" data-count="50">50+</div>
+                <p class="text-sm mt-2" style="color:var(--text-secondary);font-family:'Exo 2',sans-serif;">AR/VR Projects</p>
+            </div>
+            <div class="glass-card text-center p-6 reveal reveal-delay-1">
+                <div class="stat-number" data-count="6">6+</div>
+                <p class="text-sm mt-2" style="color:var(--text-secondary);font-family:'Exo 2',sans-serif;">Industry Verticals</p>
+            </div>
+            <div class="glass-card text-center p-6 reveal reveal-delay-2">
+                <div class="stat-number" data-count="100">100%</div>
+                <p class="text-sm mt-2" style="color:var(--text-secondary);font-family:'Exo 2',sans-serif;">Immersive Quality</p>
+            </div>
+            <div class="glass-card text-center p-6 reveal reveal-delay-3">
+                <div class="stat-number" data-count="24">24/7</div>
+                <p class="text-sm mt-2" style="color:var(--text-secondary);font-family:'Exo 2',sans-serif;">Innovation Lab</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Tech Stack Highlight -->
+<section style="position:relative;z-index:1;padding:4rem 1.5rem 6rem;">
+    <div class="max-w-4xl mx-auto text-center">
+        <p class="reveal text-sm uppercase tracking-widest mb-6" style="font-family:'Exo 2',sans-serif;color:var(--neon-cyan);letter-spacing:0.2em;">Our Technology Stack</p>
+        <div class="flex flex-wrap justify-center gap-3 reveal reveal-delay-1">
+            <span class="badge badge-ar">WebAR</span>
+            <span class="badge badge-vr">WebVR</span>
+            <span class="badge badge-xr">WebXR</span>
+            <span class="badge badge-ar">ARCore</span>
+            <span class="badge badge-vr">ARKit</span>
+            <span class="badge badge-xr">Unity</span>
+            <span class="badge badge-ar">8thWall</span>
+            <span class="badge badge-vr">Three.js</span>
+            <span class="badge badge-xr">Spark AR</span>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer-futuristic py-8" style="position:relative;z-index:1;">
+    <div class="max-w-7xl mx-auto px-4 text-center">
+        <div class="flex items-center justify-center gap-3 mb-4">
+            <img src="{% static 'images/inixr_logo.png' %}" alt="iNiXR" class="w-6 h-6 logo-glow">
+            <span class="text-sm font-bold" style="font-family:'Orbitron',sans-serif;"><span class="text-gradient">iNiXR</span> Technologies</span>
+        </div>
+        <p class="text-xs" style="color:var(--text-secondary);">&copy; 2025 iNiXR Technologies. All rights reserved.</p>
+    </div>
+</footer>
+
+<!-- Scripts -->
+<script>
+(function() {
+    const canvas = document.getElementById('particles-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let mouseX = 0, mouseY = 0;
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    document.addEventListener('mousemove', function(e) { mouseX = e.clientX; mouseY = e.clientY; });
+
+    class Particle {
+        constructor() { this.reset(); }
+        reset() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 2.5 + 0.5;
+            this.speedX = (Math.random() - 0.5) * 0.4;
+            this.speedY = (Math.random() - 0.5) * 0.4;
+            this.opacity = Math.random() * 0.6 + 0.1;
+            this.color = ['0,245,255','180,0,255','0,255,136'][Math.floor(Math.random()*3)];
+        }
+        update() {
+            this.x += this.speedX;
+            this.y += this.speedY;
+            const dx = mouseX - this.x, dy = mouseY - this.y;
+            const dist = Math.sqrt(dx*dx+dy*dy);
+            if (dist < 200) { this.x -= dx*0.008; this.y -= dy*0.008; }
+            if (this.x<0||this.x>canvas.width||this.y<0||this.y>canvas.height) this.reset();
+        }
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+            ctx.fillStyle = `rgba(${this.color},${this.opacity})`;
+            ctx.fill();
+        }
+    }
+
+    for (let i=0;i<120;i++) particles.push(new Particle());
+
+    function drawLines() {
+        for (let i=0;i<particles.length;i++) {
+            for (let j=i+1;j<particles.length;j++) {
+                const dx=particles[i].x-particles[j].x, dy=particles[i].y-particles[j].y;
+                const dist=Math.sqrt(dx*dx+dy*dy);
+                if (dist<100) {
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x,particles[i].y);
+                    ctx.lineTo(particles[j].x,particles[j].y);
+                    ctx.strokeStyle=`rgba(0,245,255,${0.06*(1-dist/100)})`;
+                    ctx.lineWidth=0.5;
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+
+    function animate() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        particles.forEach(p=>{p.update();p.draw();});
+        drawLines();
+        requestAnimationFrame(animate);
+    }
+    animate();
+})();
+
+// Reveal on scroll
+const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}About Us - iNiXR Technologies{% endblock %}
+
+{% block content %}
+<section class="section-container">
+
+    <!-- Header -->
+    <div class="text-center mb-16">
+        <p class="reveal text-sm uppercase tracking-widest mb-4" style="font-family:'Exo 2',sans-serif;color:var(--neon-cyan);letter-spacing:0.3em;">Who We Are</p>
+        <h1 class="heading-glow heading-lg reveal reveal-delay-1 mb-6">About iNiXR Technologies</h1>
+        <p class="reveal reveal-delay-2 text-lg max-w-3xl mx-auto" style="color:var(--text-secondary);line-height:1.8;">
+            We are a world-class team of immersive technology innovators, building the future of human-digital interaction through AR, VR, and XR.
+        </p>
+    </div>
+
+    <hr class="divider-glow reveal">
+
+    <!-- Mission & Vision -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-16 mb-16">
+        <div class="glass-card p-8 reveal reveal-delay-1">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="icon-circle" style="width:48px;height:48px;margin:0;">
+                    <svg width="22" height="22" fill="none" stroke="var(--neon-cyan)" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                </div>
+                <h2 class="text-xl font-bold" style="font-family:'Orbitron',sans-serif;color:var(--neon-cyan);">Our Mission</h2>
+            </div>
+            <p style="color:var(--text-secondary);line-height:1.8;">
+                To democratize immersive technology by creating accessible, world-class AR, VR, and XR solutions that transform how people learn, shop, heal, and connect.
+            </p>
+        </div>
+
+        <div class="glass-card p-8 reveal reveal-delay-2">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="icon-circle" style="width:48px;height:48px;margin:0;background:rgba(180,0,255,0.08);border-color:rgba(180,0,255,0.15);">
+                    <svg width="22" height="22" fill="none" stroke="var(--neon-purple)" stroke-width="1.5" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </div>
+                <h2 class="text-xl font-bold" style="font-family:'Orbitron',sans-serif;color:var(--neon-purple);">Our Vision</h2>
+            </div>
+            <p style="color:var(--text-secondary);line-height:1.8;">
+                To be the global leader in immersive reality solutions, where the line between physical and digital worlds dissolves into seamless, meaningful experiences.
+            </p>
+        </div>
+    </div>
+
+    <!-- What Sets Us Apart -->
+    <div class="text-center mb-12">
+        <p class="reveal text-sm uppercase tracking-widest mb-4" style="font-family:'Exo 2',sans-serif;color:var(--neon-cyan);letter-spacing:0.2em;">Why iNiXR</p>
+        <h2 class="heading-glow reveal reveal-delay-1 mb-4" style="font-size:clamp(1.5rem,3vw,2.5rem);">What Sets Us Apart</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        <div class="holo-card text-center reveal reveal-delay-1" style="padding:2rem;">
+            <div class="icon-circle">
+                <svg width="26" height="26" fill="none" stroke="var(--neon-cyan)" stroke-width="1.5" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <h3 class="heading-md mb-3" style="font-family:'Orbitron',sans-serif;">Innovation First</h3>
+            <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.7;">We don't follow trends - we create them. Our R&D lab constantly pushes the boundaries of what's possible.</p>
+        </div>
+
+        <div class="holo-card text-center reveal reveal-delay-2" style="padding:2rem;">
+            <div class="icon-circle" style="background:rgba(180,0,255,0.08);border-color:rgba(180,0,255,0.15);">
+                <svg width="26" height="26" fill="none" stroke="var(--neon-purple)" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+            </div>
+            <h3 class="heading-md mb-3" style="font-family:'Orbitron',sans-serif;">Expert Team</h3>
+            <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.7;">Passionate technologists and creative thinkers with deep expertise across AR, VR, XR, and spatial computing.</p>
+        </div>
+
+        <div class="holo-card text-center reveal reveal-delay-3" style="padding:2rem;">
+            <div class="icon-circle" style="background:rgba(0,255,136,0.08);border-color:rgba(0,255,136,0.15);">
+                <svg width="26" height="26" fill="none" stroke="var(--neon-green)" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <h3 class="heading-md mb-3" style="font-family:'Orbitron',sans-serif;">Enterprise Ready</h3>
+            <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.7;">From education to industrial applications, we deliver scalable solutions that make technology more human and impactful.</p>
+        </div>
+    </div>
+
+    <!-- Journey Timeline -->
+    <div class="text-center mb-12">
+        <p class="reveal text-sm uppercase tracking-widest mb-4" style="font-family:'Exo 2',sans-serif;color:var(--neon-cyan);letter-spacing:0.2em;">Our Journey</p>
+        <h2 class="heading-glow reveal reveal-delay-1 mb-8" style="font-size:clamp(1.5rem,3vw,2.5rem);">Building the Future</h2>
+    </div>
+
+    <div class="timeline max-w-3xl mx-auto mb-16">
+        <div class="timeline-item reveal">
+            <div class="timeline-dot"></div>
+            <div class="glass-card p-5">
+                <h4 class="font-bold mb-1" style="font-family:'Orbitron',sans-serif;color:var(--neon-cyan);font-size:0.9rem;">Founded</h4>
+                <p style="color:var(--text-secondary);font-size:0.9rem;">iNiXR Technologies was born from a passion for merging reality with imagination.</p>
+            </div>
+        </div>
+        <div class="timeline-item reveal reveal-delay-1">
+            <div class="timeline-dot" style="background:var(--neon-purple);box-shadow:0 0 15px rgba(180,0,255,0.5);"></div>
+            <div class="glass-card p-5">
+                <h4 class="font-bold mb-1" style="font-family:'Orbitron',sans-serif;color:var(--neon-purple);font-size:0.9rem;">First AR Product</h4>
+                <p style="color:var(--text-secondary);font-size:0.9rem;">Launched our first AR application for education, transforming classroom learning.</p>
+            </div>
+        </div>
+        <div class="timeline-item reveal reveal-delay-2">
+            <div class="timeline-dot" style="background:var(--neon-green);box-shadow:0 0 15px rgba(0,255,136,0.5);"></div>
+            <div class="glass-card p-5">
+                <h4 class="font-bold mb-1" style="font-family:'Orbitron',sans-serif;color:var(--neon-green);font-size:0.9rem;">Expanding Horizons</h4>
+                <p style="color:var(--text-secondary);font-size:0.9rem;">Expanded into e-commerce, healthcare, heritage preservation, and enterprise solutions.</p>
+            </div>
+        </div>
+        <div class="timeline-item reveal reveal-delay-3">
+            <div class="timeline-dot"></div>
+            <div class="glass-card p-5">
+                <h4 class="font-bold mb-1" style="font-family:'Orbitron',sans-serif;color:var(--neon-cyan);font-size:0.9rem;">The Future</h4>
+                <p style="color:var(--text-secondary);font-size:0.9rem;">Building the next generation of WebAR, spatial computing, and mixed reality experiences.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tagline -->
+    <div class="text-center reveal">
+        <p class="text-xl italic mb-8" style="color:var(--text-secondary);">"Transforming Imagination into Immersive Reality"</p>
+        <a href="/contact/" class="btn-futuristic btn-primary">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            Let's Build Together
+        </a>
+    </div>
+
+</section>
+{% endblock %}

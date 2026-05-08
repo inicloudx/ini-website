@@ -1,0 +1,50 @@
+version: '3.9'
+
+services:
+
+  # ── Django + Gunicorn ──────────────────────────────────────
+  web:
+    build: .
+    container_name: inixr_web
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    expose:
+      - "8000"
+    depends_on: []
+
+  # ── Nginx reverse proxy ────────────────────────────────────
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: inixr_nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media:ro
+      - certbot_certs:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot:ro
+    depends_on:
+      - web
+
+  # ── Certbot (free SSL from Let's Encrypt) ─────────────────
+  certbot:
+    image: certbot/certbot:latest
+    container_name: inixr_certbot
+    volumes:
+      - certbot_certs:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    # Run manually: docker compose run --rm certbot certonly ...
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+volumes:
+  static_volume:
+  media_volume:
+  certbot_certs:
+  certbot_www:

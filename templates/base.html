@@ -1,0 +1,212 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}iNiXR Technologies{% endblock %}</title>
+    <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+    <!-- Futuristic Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Exo+2:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Custom Futuristic CSS -->
+    <link href="{% static 'css/custom.css' %}" rel="stylesheet">
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="scanlines">
+
+    <!-- Particle Background Canvas -->
+    <canvas id="particles-canvas"></canvas>
+
+    <!-- Floating Decorative Orbs -->
+    <div class="orb orb-cyan" style="width:400px;height:400px;top:10%;right:-10%;"></div>
+    <div class="orb orb-purple" style="width:350px;height:350px;bottom:20%;left:-8%;animation-delay:-3s;"></div>
+
+    <!-- Navigation -->
+    <nav class="nav-futuristic" id="mainNav">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-3 text-decoration-none">
+                    <img src="{% static 'images/inixr_logo.png' %}" alt="iNiXR" class="w-10 h-10 logo-glow">
+                    <span class="text-lg font-bold" style="font-family:'Orbitron',sans-serif;">
+                        <span class="text-gradient">iNiXR</span>
+                    </span>
+                </a>
+
+                <!-- Desktop Nav Links -->
+                <div class="nav-links hidden md:flex items-center gap-8">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/about/" class="nav-link">About</a>
+                    <a href="/solutions/" class="nav-link">Solutions</a>
+                    <a href="/portfolio/product-showcase/" class="nav-link">Products</a>
+                    <a href="/partner/" class="nav-link">Partner</a>
+                    <a href="/contact/" class="btn-futuristic btn-primary" style="padding:0.5rem 1.25rem;font-size:0.75rem;">
+                        Contact Us
+                    </a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button class="mobile-menu-btn md:hidden" onclick="document.querySelector('.nav-links').classList.toggle('active')" aria-label="Menu">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main style="position:relative;z-index:1;padding-top:4rem;">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer-futuristic py-12 mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                <!-- Brand -->
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <img src="{% static 'images/inixr_logo.png' %}" alt="iNiXR" class="w-8 h-8 logo-glow">
+                        <span class="text-lg font-bold" style="font-family:'Orbitron',sans-serif;"><span class="text-gradient">iNiXR</span> Technologies</span>
+                    </div>
+                    <p class="text-sm" style="color:var(--text-secondary);">Transforming Imagination into Immersive Reality. World-class AR, VR & XR solutions.</p>
+                </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="text-sm font-semibold uppercase tracking-wider mb-4" style="color:var(--neon-cyan);font-family:'Exo 2',sans-serif;">Quick Links</h4>
+                    <div class="flex flex-col gap-2">
+                        <a href="/solutions/" class="text-sm hover:text-white transition" style="color:var(--text-secondary);">Solutions</a>
+                        <a href="/portfolio/product-showcase/" class="text-sm hover:text-white transition" style="color:var(--text-secondary);">Product Showcase</a>
+                        <a href="/partner/" class="text-sm hover:text-white transition" style="color:var(--text-secondary);">Partner with Us</a>
+                        <a href="/contact/" class="text-sm hover:text-white transition" style="color:var(--text-secondary);">Contact</a>
+                    </div>
+                </div>
+
+                <!-- Connect -->
+                <div>
+                    <h4 class="text-sm font-semibold uppercase tracking-wider mb-4" style="color:var(--neon-cyan);font-family:'Exo 2',sans-serif;">Connect</h4>
+                    <p class="text-sm mb-2" style="color:var(--text-secondary);">Ready to build the future?</p>
+                    <a href="/contact/" class="btn-futuristic btn-outline" style="padding:0.5rem 1.25rem;font-size:0.7rem;">Get in Touch</a>
+                </div>
+            </div>
+
+            <hr class="divider-glow" style="margin:1.5rem 0;">
+
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-xs" style="color:var(--text-secondary);">&copy; 2025 iNiXR Technologies. All rights reserved.</p>
+                <p class="text-xs" style="color:rgba(136,153,180,0.4);">Crafted for the future of immersive reality</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Particle Background Script -->
+    <script>
+    (function() {
+        const canvas = document.getElementById('particles-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let mouseX = 0, mouseY = 0;
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        document.addEventListener('mousemove', function(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        class Particle {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+                this.opacity = Math.random() * 0.5 + 0.1;
+                this.color = Math.random() > 0.5 ? '0,245,255' : '180,0,255';
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                const dx = mouseX - this.x, dy = mouseY - this.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < 150) {
+                    this.x -= dx * 0.01;
+                    this.y -= dy * 0.01;
+                }
+                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.reset();
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${this.color},${this.opacity})`;
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 80; i++) particles.push(new Particle());
+
+        function drawLines() {
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < 120) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(0,245,255,${0.08 * (1 - dist/120)})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            drawLines();
+            requestAnimationFrame(animate);
+        }
+        animate();
+    })();
+
+    // Navbar scroll effect
+    window.addEventListener('scroll', function() {
+        const nav = document.getElementById('mainNav');
+        if (nav) nav.classList.toggle('scrolled', window.scrollY > 50);
+    });
+
+    // Reveal on scroll
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.reveal').forEach(function(el) {
+            observer.observe(el);
+        });
+    });
+    </script>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
