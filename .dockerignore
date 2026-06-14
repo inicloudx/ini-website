@@ -9,7 +9,6 @@ __pycache__/
 .vscode/
 .idea/
 *.md
-db.sqlite3
 staticfiles/
 media/
 *.log

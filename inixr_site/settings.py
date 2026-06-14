@@ -39,6 +39,7 @@ ALLOWED_HOSTS = [h.strip() for h in _allowed.split(',') if h.strip()]
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -90,7 +91,7 @@ WSGI_APPLICATION = 'inixr_site.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / 'db' / 'db.sqlite3',
     }
 }
 
@@ -151,6 +152,65 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 _csrf = os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', 'https://inixr.com,https://www.inixr.com')
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf.split(',') if o.strip()]
+
+# ── Jazzmin Modern Admin UI ────────────────────────────────────
+JAZZMIN_SETTINGS = {
+    "site_title": "iNiXR Admin",
+    "site_header": "iNiXR Technologies",
+    "site_brand": "iNiXR",
+    "welcome_sign": "Welcome to iNiXR Admin Panel",
+    "copyright": "iNiXR Technologies",
+    "search_model": ["portfolio.Portfolio"],
+    "topmenu_links": [
+        {"name": "Website", "url": "/", "new_window": True},
+        {"name": "Products", "url": "/portfolio/product-showcase/", "new_window": True},
+    ],
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "icons": {
+        "portfolio.Portfolio": "fas fa-vr-cardboard",
+        "portfolio.PurchaseLink": "fas fa-shopping-cart",
+    },
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-circle",
+    "related_modal_active": True,
+    "custom_css": None,
+    "custom_js": None,
+    "use_google_fonts_cdn": True,
+    "show_ui_builder": False,
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "navbar-dark",
+    "accent": "accent-teal",
+    "navbar": "navbar-dark",
+    "no_navbar_border": True,
+    "navbar_fixed": True,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": True,
+    "sidebar": "sidebar-dark-teal",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": True,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    "theme": "darkly",
+    "dark_mode_theme": "darkly",
+    "button_classes": {
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success",
+    },
+}
 
 # ── Production security flags ──────────────────────────────────
 # SSL redirect only when DJANGO_SSL_REDIRECT=True (set after certs are ready)

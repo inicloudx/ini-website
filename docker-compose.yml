@@ -10,6 +10,7 @@ services:
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
+      - db_volume:/app/db
     expose:
       - "8000"
     depends_on: []
@@ -44,5 +45,6 @@ services:
 volumes:
   static_volume:
   media_volume:
+  db_volume:
   certbot_certs:
   certbot_www:
