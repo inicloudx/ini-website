@@ -1,4 +1,5 @@
 import os
+import re
 from django.db import models
 from django.dispatch import receiver
 
@@ -67,6 +68,28 @@ class Portfolio(models.Model):
         if self.meta_quest: platforms.append(('meta',       'Meta Quest', self.meta_store_url))
         if self.web_app:    platforms.append(('web',        'Web / AR',   self.web_app_url))
         return platforms
+
+    def get_youtube_embed_url(self):
+        """Convert any YouTube URL to embed format."""
+        if not self.youtube_link:
+            return None
+        url = self.youtube_link.strip()
+        # Already an embed URL
+        if 'youtube.com/embed/' in url:
+            return url
+        # youtu.be/VIDEO_ID
+        m = re.search(r'youtu\.be/([A-Za-z0-9_-]{11})', url)
+        if m:
+            return f'https://www.youtube.com/embed/{m.group(1)}'
+        # youtube.com/watch?v=VIDEO_ID
+        m = re.search(r'[?&]v=([A-Za-z0-9_-]{11})', url)
+        if m:
+            return f'https://www.youtube.com/embed/{m.group(1)}'
+        # youtube.com/shorts/VIDEO_ID
+        m = re.search(r'youtube\.com/shorts/([A-Za-z0-9_-]{11})', url)
+        if m:
+            return f'https://www.youtube.com/embed/{m.group(1)}'
+        return url
 
     def get_star_range(self):
         if self.rating:
