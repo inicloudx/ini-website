@@ -19,24 +19,29 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# Install gosu for privilege drop in entrypoint
+RUN apt-get update && apt-get install -y --no-install-recommends gosu && rm -rf /var/lib/apt/lists/*
+
 # Copy installed packages from builder
 COPY --from=builder /install /usr/local
 
 # Copy project source
 COPY . .
 
-# Create non-root user for security
-RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+# Create non-root user and set up dirs
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser \
+    && mkdir -p /app/staticfiles /app/media /app/db \
+    && chown -R appuser:appgroup /app
 
-# Create dirs for static/media with correct permissions
-RUN mkdir -p /app/staticfiles /app/media && chown -R appuser:appgroup /app
-
-USER appuser
-
-# Collect static files
+# Collect static files (runs as root, staticfiles already chowned above)
 RUN python manage.py collectstatic --noinput
 
+COPY docker-entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 EXPOSE 8000
+
+ENTRYPOINT ["/entrypoint.sh"]
 
 # Gunicorn: 3 workers, timeout 120s
 CMD ["gunicorn", "inixr_site.wsgi:application", \
