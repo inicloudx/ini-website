@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}{{ product.title }} - iNiXR Technologies{% endblock %}
+{% block title %}{{ product.title }} – iNiXR Technologies{% endblock %}
 
 {% block content %}
-<section class="section-container" style="max-width:900px;">
+<section class="section-container" style="max-width:1000px;">
 
-    <!-- Back Navigation -->
+    <!-- Back -->
     <div class="reveal mb-8">
         <a href="{% url 'portfolio:product_showcase' %}" class="nav-link flex items-center gap-2" style="font-size:0.85rem;">
             <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
@@ -13,105 +13,226 @@
         </a>
     </div>
 
-    <!-- Product Title & Badges -->
-    <div class="text-center mb-8">
-        <div class="reveal flex justify-center gap-2 mb-4">
-            <span class="badge badge-{% if product.category == 'AR' %}ar{% elif product.category == 'VR' %}vr{% else %}xr{% endif %}">{{ product.category }}</span>
-            <span class="badge {% if product.status == 'Beta' %}badge-beta{% else %}badge-status{% endif %}">{{ product.status }}</span>
-        </div>
-        <h1 class="heading-glow heading-lg reveal reveal-delay-1">{{ product.title }}</h1>
-        <p class="reveal reveal-delay-2 text-sm mt-3" style="color:var(--text-secondary);">
-            Last Updated: {{ product.updated_at|date:"F j, Y" }}
-        </p>
-    </div>
+    <!-- Hero -->
+    <div class="glass-card reveal mb-8" style="padding:2.5rem;overflow:hidden;position:relative;">
+        <!-- Background glow -->
+        <div style="position:absolute;top:-60px;right:-60px;width:300px;height:300px;border-radius:50%;
+            {% if product.category == 'AR' %}background:rgba(0,245,255,0.06);
+            {% elif product.category == 'VR' %}background:rgba(180,0,255,0.06);
+            {% else %}background:rgba(0,255,136,0.06);{% endif %}
+            filter:blur(60px);pointer-events:none;"></div>
 
-    <!-- Video Section -->
-    {% if product.video %}
-    <div class="reveal reveal-delay-2 video-container mb-10 mx-auto" style="max-width:400px;">
-        <video controls width="100%"
-               class="rounded-2xl"
-               style="object-fit:contain;"
-               poster="{% static 'images/video_placeholder.jpg' %}">
-            <source src="{{ product.video.url }}" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
-    </div>
-    {% elif product.youtube_link %}
-    <div class="reveal reveal-delay-2 video-container mb-10 mx-auto" style="max-width:700px;">
-        <iframe class="w-full rounded-2xl" style="height:400px;"
-                src="{{ product.youtube_link }}"
-                frameborder="0" allowfullscreen></iframe>
-    </div>
-    {% endif %}
-
-    <!-- App Description -->
-    <div class="glass-card p-8 mb-6 reveal reveal-delay-3">
-        <div class="flex items-center gap-3 mb-4">
-            <div class="icon-circle" style="width:42px;height:42px;margin:0;flex-shrink:0;">
-                <svg width="20" height="20" fill="none" stroke="var(--neon-cyan)" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        <div class="flex flex-col md:flex-row items-start gap-6">
+            <!-- App Icon placeholder / category icon -->
+            <div style="width:90px;height:90px;border-radius:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:2.5rem;
+                {% if product.category == 'AR' %}background:rgba(0,245,255,0.08);border:1px solid rgba(0,245,255,0.2);
+                {% elif product.category == 'VR' %}background:rgba(180,0,255,0.08);border:1px solid rgba(180,0,255,0.2);
+                {% else %}background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.2);{% endif %}">
+                {% if product.category == 'AR' %}🔮{% elif product.category == 'VR' %}🥽{% else %}✨{% endif %}
             </div>
-            <h2 class="text-lg font-bold" style="font-family:'Orbitron',sans-serif;color:var(--neon-cyan);">App Description</h2>
-        </div>
-        <p style="color:var(--text-secondary);line-height:1.8;">{{ product.description }}</p>
-    </div>
 
-    <!-- Usage -->
-    <div class="glass-card p-8 mb-6 reveal reveal-delay-4">
-        <div class="flex items-center gap-3 mb-4">
-            <div class="icon-circle" style="width:42px;height:42px;margin:0;flex-shrink:0;background:rgba(180,0,255,0.08);border-color:rgba(180,0,255,0.15);">
-                <svg width="20" height="20" fill="none" stroke="var(--neon-purple)" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            <div style="flex:1;">
+                <!-- Badges -->
+                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+                    <span class="badge badge-{% if product.category == 'AR' %}ar{% elif product.category == 'VR' %}vr{% else %}xr{% endif %}">{{ product.category }} — {{ product.get_category_display }}</span>
+                    <span class="badge {% if product.status == 'Available' %}badge-status{% elif product.status == 'Beta' %}badge-beta{% else %}" style="background:rgba(136,153,180,0.15);color:var(--text-secondary);border-color:rgba(136,153,180,0.2);{% endif %}">{{ product.status }}</span>
+                </div>
+
+                <h1 class="heading-glow mb-2" style="font-size:clamp(1.6rem,3vw,2.5rem);">{{ product.title }}</h1>
+
+                {% if product.tagline %}
+                <p style="color:var(--neon-cyan);font-size:1rem;font-family:'Exo 2',sans-serif;margin-bottom:1rem;">{{ product.tagline }}</p>
+                {% endif %}
+
+                <!-- Rating & Downloads -->
+                <div style="display:flex;flex-wrap:wrap;align-items:center;gap:1.5rem;">
+                    {% if product.rating %}
+                    <div style="display:flex;align-items:center;gap:0.4rem;">
+                        {% with stars=product.get_star_range %}
+                        {% for s in stars.0 %}<span style="color:#fbbf24;">★</span>{% endfor %}
+                        {% for s in stars.1 %}<span style="color:#fbbf24;">⯨</span>{% endfor %}
+                        {% for s in stars.2 %}<span style="color:rgba(251,191,36,0.3);">★</span>{% endfor %}
+                        {% endwith %}
+                        <span style="color:var(--text-secondary);font-size:0.9rem;margin-left:0.25rem;font-family:'Exo 2',sans-serif;">{{ product.rating }} / 5</span>
+                    </div>
+                    {% endif %}
+                    {% if product.downloads_count %}
+                    <span style="color:var(--text-secondary);font-size:0.9rem;font-family:'Exo 2',sans-serif;">⬇ {{ product.downloads_count }} Downloads</span>
+                    {% endif %}
+                    {% if product.available_date %}
+                    <span style="color:var(--text-secondary);font-size:0.9rem;font-family:'Exo 2',sans-serif;">📅 Since {{ product.available_date|date:"F Y" }}</span>
+                    {% endif %}
+                </div>
             </div>
-            <h2 class="text-lg font-bold" style="font-family:'Orbitron',sans-serif;color:var(--neon-purple);">Usage</h2>
         </div>
-        <p style="color:var(--text-secondary);line-height:1.8;">
-            This app is ideal for educational AR/VR demos, product showcases, or immersive brand experiences. Designed to scale across mobile and web platforms.
-        </p>
-    </div>
 
-    <!-- Buy Directly -->
-    <div class="glass-card p-8 mb-6 reveal reveal-delay-5">
-        <div class="flex items-center gap-3 mb-4">
-            <div class="icon-circle" style="width:42px;height:42px;margin:0;flex-shrink:0;background:rgba(0,255,136,0.08);border-color:rgba(0,255,136,0.15);">
-                <svg width="20" height="20" fill="none" stroke="var(--neon-green)" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
-            </div>
-            <h2 class="text-lg font-bold" style="font-family:'Orbitron',sans-serif;color:var(--neon-green);">Buy Directly</h2>
-        </div>
-        <p class="mb-4" style="color:var(--text-secondary);">Want to purchase directly from iNiXR?</p>
-        <a href="https://wa.me/918825782388" target="_blank" class="btn-futuristic btn-neon-green" style="padding:0.7rem 1.5rem;">
-            <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
-            Chat on WhatsApp (8825782388)
-        </a>
-
-        {% if product.purchase_links.all %}
-        <div class="mt-6">
-            <h3 class="text-sm font-semibold uppercase tracking-wider mb-3" style="font-family:'Exo 2',sans-serif;color:var(--text-primary);">Other Purchase Options</h3>
-            <div class="flex flex-wrap gap-3">
-                {% for link in product.purchase_links.all %}
-                <a href="{{ link.url }}" target="_blank" class="btn-futuristic btn-outline" style="padding:0.5rem 1.25rem;font-size:0.8rem;">
-                    {{ link.label }}
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+        <!-- Platform Download Buttons -->
+        {% with platforms=product.get_platforms %}
+        {% if platforms %}
+        <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid rgba(0,245,255,0.08);">
+            <p style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--text-secondary);font-family:'Exo 2',sans-serif;margin-bottom:1rem;">Available On</p>
+            <div style="display:flex;flex-wrap:wrap;gap:0.75rem;">
+                {% for pid, pname, purl in platforms %}
+                {% if purl %}
+                <a href="{{ purl }}" target="_blank"
+                   style="display:inline-flex;align-items:center;gap:0.6rem;padding:0.6rem 1.25rem;border-radius:12px;text-decoration:none;font-family:'Exo 2',sans-serif;font-weight:600;font-size:0.85rem;transition:all 0.3s ease;
+                   {% if pid == 'android' %}background:rgba(0,255,136,0.1);color:#00ff88;border:1px solid rgba(0,255,136,0.25);
+                   {% elif pid == 'ios' %}background:rgba(255,255,255,0.08);color:#e0e0e0;border:1px solid rgba(255,255,255,0.15);
+                   {% elif pid == 'meta' %}background:rgba(0,128,255,0.1);color:#4da6ff;border:1px solid rgba(0,128,255,0.25);
+                   {% else %}background:rgba(0,245,255,0.1);color:var(--neon-cyan);border:1px solid rgba(0,245,255,0.25);{% endif %}"
+                   onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 25px rgba(0,0,0,0.3)';"
+                   onmouseout="this.style.transform='';this.style.boxShadow='';">
+                    {% if pid == 'android' %}
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.523 15.341c-.68.679-1.481 1.019-2.411 1.019H8.887c-.93 0-1.732-.34-2.412-1.019-.68-.679-1.02-1.5-1.02-2.461V7.194h13.088v5.686c0 .961-.34 1.782-1.02 2.461zm-9.96-11.7l-1.33-2.286c-.093-.16-.052-.366.101-.468.154-.103.36-.063.468.101l1.348 2.319a7.493 7.493 0 014.7 0L14.198.988c.108-.164.314-.204.468-.101.153.102.194.308.101.468l-1.33 2.286A7.545 7.545 0 0117.87 6.59H6.13a7.545 7.545 0 013.433-2.949zM9.5 4.794a.546.546 0 100-1.091.546.546 0 000 1.091zm5 0a.546.546 0 100-1.091.546.546 0 000 1.091z"/></svg>
+                    Get it on Google Play
+                    {% elif pid == 'ios' %}
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                    Download on App Store
+                    {% elif pid == 'meta' %}
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6.882 10.503c-.472.944-.722 2.086-.722 3.37 0 1.267.238 2.352.68 3.23.508 1.005 1.247 1.571 2.01 1.571.74 0 1.38-.453 2.065-1.668.563-1.005.998-2.311 1.405-3.516l.188-.562c.494-1.493.996-2.967 1.677-4.022.83-1.283 1.748-1.906 2.752-1.906.925 0 1.795.52 2.526 1.524.67.918 1.093 2.134 1.093 3.61 0 1.363-.379 2.484-.949 3.373-.504.78-1.187 1.258-1.869 1.258h-.018c-.66 0-1.203-.461-1.646-1.303-.263-.5-.476-1.118-.668-1.785l-.072-.25a2.406 2.406 0 00-.051-.168l-.028-.095c-.232-.836-.446-1.527-.713-2.086-.364-.758-.718-1.09-1.062-1.09-.395 0-.738.317-1.058.99-.23.482-.432 1.119-.63 1.75l-.178.574c-.374 1.236-.77 2.45-1.277 3.417-.693 1.324-1.468 1.992-2.37 1.992-.978 0-1.856-.624-2.469-1.768C4.27 16.23 4 14.942 4 13.457c0-1.744.332-3.185 1.005-4.285.714-1.177 1.742-1.87 2.876-1.87.57 0 1.084.197 1.527.588.54.477.952 1.19 1.272 2.063-.355-.273-.68-.45-1.005-.45-.287 0-.558.148-.793.516v.484z"/></svg>
+                    Get on Meta Quest
+                    {% else %}
+                    🌐 Open Web App
+                    {% endif %}
                 </a>
+                {% else %}
+                <span style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.6rem 1.25rem;border-radius:12px;font-family:'Exo 2',sans-serif;font-size:0.85rem;background:rgba(136,153,180,0.08);color:var(--text-secondary);border:1px solid rgba(136,153,180,0.15);">
+                    {{ pname }} — Coming Soon
+                </span>
+                {% endif %}
                 {% endfor %}
             </div>
         </div>
         {% endif %}
+        {% endwith %}
     </div>
 
-    <!-- Partnership -->
-    <div class="glass-card p-8 mb-10 reveal reveal-delay-6" style="border-color:rgba(0,245,255,0.12);">
-        <div class="flex items-center gap-3 mb-4">
-            <div class="icon-circle" style="width:42px;height:42px;margin:0;flex-shrink:0;">
-                <svg width="20" height="20" fill="none" stroke="var(--neon-cyan)" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-            </div>
-            <h2 class="text-lg font-bold" style="font-family:'Orbitron',sans-serif;color:var(--neon-cyan);">Partnership Opportunities</h2>
+    <!-- Video -->
+    {% if product.video or product.youtube_link %}
+    <div class="reveal reveal-delay-2 mb-8">
+        <p class="text-sm uppercase tracking-wider mb-4" style="font-family:'Exo 2',sans-serif;color:var(--neon-cyan);">Preview</p>
+        {% if product.video %}
+        <div class="video-container mx-auto" style="max-width:380px;">
+            <video controls style="width:100%;border-radius:16px;object-fit:contain;"
+                   poster="{% static 'images/video_placeholder.jpg' %}">
+                <source src="{{ product.video.url }}" type="video/mp4">
+            </video>
         </div>
-        <p class="mb-4" style="color:var(--text-secondary);line-height:1.8;">
-            We welcome partnership proposals for marketing, white-label licensing, and reseller distribution for {{ product.title }}.
+        {% elif product.youtube_link %}
+        <div class="video-container mx-auto" style="max-width:720px;">
+            <iframe style="width:100%;height:400px;border-radius:16px;" src="{{ product.youtube_link }}" frameborder="0" allowfullscreen></iframe>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Two-column layout -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+
+        <!-- Description (2/3 width) -->
+        <div class="md:col-span-2">
+            <div class="glass-card p-7 mb-6 reveal reveal-delay-3">
+                <h2 class="text-lg font-bold mb-4" style="font-family:'Orbitron',sans-serif;color:var(--neon-cyan);">About This App</h2>
+                <p style="color:var(--text-secondary);line-height:1.9;white-space:pre-line;">{{ product.description }}</p>
+            </div>
+
+            <!-- Features -->
+            {% if product.get_features_list %}
+            <div class="glass-card p-7 mb-6 reveal reveal-delay-4">
+                <h2 class="text-lg font-bold mb-4" style="font-family:'Orbitron',sans-serif;color:var(--neon-purple);">Key Features</h2>
+                <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:0.75rem;">
+                    {% for feature in product.get_features_list %}
+                    <li style="display:flex;align-items:flex-start;gap:0.75rem;color:var(--text-secondary);line-height:1.6;">
+                        <span style="color:var(--neon-green);margin-top:2px;flex-shrink:0;">✦</span>
+                        {{ feature }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar (1/3 width) -->
+        <div>
+            <!-- App Info Card -->
+            <div class="glass-card p-6 mb-6 reveal reveal-delay-3">
+                <h3 class="text-sm font-bold mb-4 uppercase tracking-wider" style="font-family:'Exo 2',sans-serif;color:var(--neon-cyan);">App Info</h3>
+                <div style="display:flex;flex-direction:column;gap:1rem;">
+                    <div>
+                        <p style="font-size:0.7rem;text-transform:uppercase;color:var(--text-secondary);letter-spacing:0.1em;margin-bottom:0.2rem;font-family:'Exo 2',sans-serif;">Category</p>
+                        <span class="badge badge-{% if product.category == 'AR' %}ar{% elif product.category == 'VR' %}vr{% else %}xr{% endif %}">{{ product.get_category_display }}</span>
+                    </div>
+                    <div>
+                        <p style="font-size:0.7rem;text-transform:uppercase;color:var(--text-secondary);letter-spacing:0.1em;margin-bottom:0.2rem;font-family:'Exo 2',sans-serif;">Status</p>
+                        <p style="color:var(--text-primary);font-weight:600;font-size:0.9rem;">{{ product.status }}</p>
+                    </div>
+                    {% if product.available_date %}
+                    <div>
+                        <p style="font-size:0.7rem;text-transform:uppercase;color:var(--text-secondary);letter-spacing:0.1em;margin-bottom:0.2rem;font-family:'Exo 2',sans-serif;">Available Since</p>
+                        <p style="color:var(--text-primary);font-size:0.9rem;">{{ product.available_date|date:"F j, Y" }}</p>
+                    </div>
+                    {% endif %}
+                    {% if product.downloads_count %}
+                    <div>
+                        <p style="font-size:0.7rem;text-transform:uppercase;color:var(--text-secondary);letter-spacing:0.1em;margin-bottom:0.2rem;font-family:'Exo 2',sans-serif;">Downloads</p>
+                        <p style="color:var(--neon-green);font-weight:700;font-size:1.1rem;font-family:'Orbitron',sans-serif;">{{ product.downloads_count }}</p>
+                    </div>
+                    {% endif %}
+                    {% if product.rating %}
+                    <div>
+                        <p style="font-size:0.7rem;text-transform:uppercase;color:var(--text-secondary);letter-spacing:0.1em;margin-bottom:0.2rem;font-family:'Exo 2',sans-serif;">Rating</p>
+                        <p style="color:#fbbf24;font-weight:700;font-size:1.2rem;font-family:'Orbitron',sans-serif;">★ {{ product.rating }}</p>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <p style="font-size:0.7rem;text-transform:uppercase;color:var(--text-secondary);letter-spacing:0.1em;margin-bottom:0.4rem;font-family:'Exo 2',sans-serif;">Developer</p>
+                        <p style="color:var(--text-primary);font-size:0.9rem;">iNiXR Technologies</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WhatsApp Direct Purchase -->
+            <div class="glass-card p-6 mb-6 reveal reveal-delay-4" style="border-color:rgba(0,255,136,0.15);">
+                <h3 class="text-sm font-bold mb-3 uppercase tracking-wider" style="font-family:'Exo 2',sans-serif;color:var(--neon-green);">Buy Directly</h3>
+                <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:1rem;line-height:1.6;">Skip the store — get a custom license directly from us.</p>
+                <a href="https://wa.me/918825782388" target="_blank" class="btn-futuristic btn-neon-green w-full justify-center" style="padding:0.6rem 1rem;font-size:0.8rem;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>
+                    Chat on WhatsApp
+                </a>
+                {% if product.purchase_links.all %}
+                <div class="mt-4 flex flex-col gap-2">
+                    {% for link in product.purchase_links.all %}
+                    <a href="{{ link.url }}" target="_blank" class="btn-futuristic btn-outline w-full justify-center" style="padding:0.5rem 1rem;font-size:0.78rem;">
+                        {{ link.label }}
+                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Partnership CTA -->
+    <div class="glass-card p-8 text-center reveal" style="border-color:rgba(180,0,255,0.15);background:rgba(180,0,255,0.03);">
+        <div class="icon-circle mx-auto mb-4" style="background:rgba(180,0,255,0.08);border-color:rgba(180,0,255,0.2);">
+            <svg width="24" height="24" fill="none" stroke="var(--neon-purple)" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+        <h2 class="heading-glow mb-3" style="font-size:1.4rem;background:linear-gradient(135deg,#b400ff,#00f5ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">
+            Partnership Opportunities
+        </h2>
+        <p style="color:var(--text-secondary);max-width:500px;margin:0 auto 1.5rem;line-height:1.7;">
+            Interested in white-labeling, reseller distribution, or co-developing <strong style="color:var(--text-primary);">{{ product.title }}</strong> for your market?
         </p>
-        <a href="{% url 'partner:partnerpage' %}" class="btn-futuristic btn-outline" style="padding:0.7rem 1.5rem;">
-            Explore Partnership Options
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </a>
+        <div class="flex flex-wrap justify-center gap-4">
+            <a href="{% url 'partner:partnerpage' %}" class="btn-futuristic btn-neon-purple">
+                Explore Partnership
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+            <a href="https://wa.me/918825782388" target="_blank" class="btn-futuristic btn-outline">
+                Chat on WhatsApp
+            </a>
+        </div>
     </div>
 
 </section>
