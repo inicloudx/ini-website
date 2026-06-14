@@ -1,6 +1,7 @@
 #!/bin/sh
 set -e
-# The db volume is mounted root-owned; fix it before dropping to appuser
+# Fix ownership of db volume recursively (files may be created as root by
+# management commands run via docker compose exec, which defaults to root)
 mkdir -p /app/db
-chown appuser:appgroup /app/db
+chown -R appuser:appgroup /app/db
 exec gosu appuser "$@"
