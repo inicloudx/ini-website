@@ -33,9 +33,6 @@ RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser \
     && mkdir -p /app/staticfiles /app/media /app/db \
     && chown -R appuser:appgroup /app
 
-# Collect static files (runs as root, staticfiles already chowned above)
-RUN python manage.py collectstatic --noinput
-
 COPY docker-entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
