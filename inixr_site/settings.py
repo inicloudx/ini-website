@@ -212,6 +212,16 @@ JAZZMIN_UI_TWEAKS = {
     },
 }
 
+# ── Email (Gmail SMTP) ────────────────────────────────────────
+EMAIL_BACKEND   = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST      = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT      = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS   = True
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL  = os.environ.get('DEFAULT_FROM_EMAIL', 'iNiXR Technologies <contact@inixr.com>')
+CONTACT_EMAIL       = os.environ.get('CONTACT_EMAIL', 'contact@inixr.com')
+
 # ── Production security flags ──────────────────────────────────
 # SSL redirect only when DJANGO_SSL_REDIRECT=True (set after certs are ready)
 if os.environ.get('DJANGO_SSL_REDIRECT', 'False') == 'True':
