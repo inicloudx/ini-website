@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+Thambi+2:wght@500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'wish/wish.css' %}?v=6">
+  <link rel="stylesheet" href="{% static 'wish/wish.css' %}?v=7">
   <style>
     html, body { overflow: auto; height: auto; min-height: 100%; }
     .wrap { max-width: 460px; margin: 0 auto; padding: max(28px, env(safe-area-inset-top)) 16px 40px; }
@@ -41,7 +41,7 @@
     .opt { font-weight: 500; color: var(--muted); font-size: 0.85rem; }
     .actions { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
     .actions .big-btn { width: 100%; }
-    .kinds { display: flex; gap: 4px; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--glass-line); border-radius: 999px; padding: 4px; margin: 0 auto 14px; max-width: 400px; }
+    .kinds { display: flex; gap: 4px; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--glass-line); border-radius: 999px; padding: 4px; margin: 0 auto 14px; max-width: 440px; }
     .kind { flex: 1; background: none; color: var(--muted); font-weight: 800; font-size: 0.88rem; white-space: nowrap; padding: 0.55em 0; border-radius: 999px; }
     .kind.active { background: var(--accent); color: var(--accent-ink); }
     .row { display: flex; gap: 8px; }
@@ -52,12 +52,13 @@
     .toast.show { opacity: 1; }
   </style>
 </head>
-<body data-evt="{% url 'wish:track' %}" data-view="{{ view_url }}" data-thanks="{{ thanks_url }}" data-react="{{ react_url }}">
+<body data-evt="{% url 'wish:track' %}" data-view="{{ view_url }}" data-thanks="{{ thanks_url }}" data-react="{{ react_url }}" data-award="{{ award_url }}">
   <main class="wrap">
     <div class="kinds" role="tablist">
       <button type="button" class="kind" data-kind="bday" role="tab">🎂 Birthday</button>
-      <button type="button" class="kind" data-kind="ty" role="tab">💖 Thank you</button>
-      <button type="button" class="kind" data-kind="rx" role="tab">💞 Love &amp; more</button>
+      <button type="button" class="kind" data-kind="ty" role="tab">💖 Thanks</button>
+      <button type="button" class="kind" data-kind="rx" role="tab">💞 Love</button>
+      <button type="button" class="kind" data-kind="aw" role="tab">🏆 Awards</button>
     </div>
     <header class="hero">
       <div class="emoji" id="heroEmoji" aria-hidden="true">🎂</div>
@@ -71,6 +72,15 @@
 
       <label for="from">Your name</label>
       <input id="from" maxlength="24" placeholder="e.g. Karthik">
+
+      <div id="awExtras" hidden>
+        <label>Which award? 😂</label>
+        <div class="chips" id="awardChips"></div>
+        <div id="customWrap" hidden>
+          <label for="customTitle">Your award title</label>
+          <input id="customTitle" maxlength="28" placeholder="e.g. Biggest Foodie">
+        </div>
+      </div>
 
       <div id="rxExtras" hidden>
         <label>Pick a reaction</label>
@@ -103,6 +113,6 @@
     <p class="note">Free · No app needed · Names and wishes stay inside the link — we don’t store them.<br>Made with ✨ by <a href="/" style="color:inherit">iNiXR</a></p>
   </main>
   <div class="toast" id="toast">Link copied!</div>
-  <script src="{% static 'wish/create.js' %}?v=6"></script>
+  <script src="{% static 'wish/create.js' %}?v=7"></script>
 </body>
 </html>

@@ -9,7 +9,7 @@ import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 const $ = (id) => document.getElementById(id);
 const EVT_URL = document.body.dataset.evt;
 const CREATE_URL = document.body.dataset.create;
-const PAGE_KIND = ['ty', 'rx'].includes(document.body.dataset.kind) ? document.body.dataset.kind : 'bday';
+const PAGE_KIND = ['ty', 'rx', 'aw'].includes(document.body.dataset.kind) ? document.body.dataset.kind : 'bday';
 const REACT_URL = document.body.dataset.react;
 const FONT = '"Baloo Thambi 2", system-ui, sans-serif';
 const TEXT_FONT_URL = 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/fonts/helvetiker_bold.typeface.json';
@@ -32,6 +32,7 @@ const RELS = {
   friend: 'my friend', bestie: 'my bestie', love: 'my love', husband: 'my husband', wife: 'my wife',
   brother: 'my brother', sister: 'my sister', amma: 'Amma', appa: 'Appa', teacher: 'my teacher',
   colleague: 'my colleague', kind: 'a kind soul',
+  bff: 'my best friend', gang: 'the gang', machan: 'Machan',
 };
 // One-tap reactions (also sendable on their own from the creator).
 const REACTS = {
@@ -41,6 +42,24 @@ const REACTS = {
   haha: { emoji: '😂', word: 'HAHA!', verb: 'is laughing', glow: 0xffd23f },
   wow: { emoji: '😍', word: 'WOW!', verb: 'loved it', glow: 0xff5c9d },
   aww: { emoji: '☺️', word: 'AWW!', verb: 'is blushing', glow: 0xff8fc0 },
+  bff: { emoji: '🤝', word: 'BEST FRIENDS', verb: 'says you are the best friend ever', glow: 0xff5c9d },
+  gang: { emoji: '🥳', word: 'BEST GANG', verb: 'says our gang is the best', glow: 0xffd23f },
+  missyou: { emoji: '🥺', word: 'MISS YOU', verb: 'misses you', glow: 0x7ad0ff },
+};
+// 🏆 Fun awards — the friendly war zone. The trophy holds a funny prop.
+const AWARDS = {
+  liar: { emoji: '🤥', title: 'GREAT LIAR', prop: 'liar' },
+  drinker: { emoji: '🍺', title: 'GREAT DRINKER', prop: 'beer' },
+  puresoul: { emoji: '🧸', title: 'PURE SOUL', prop: 'teddy' },
+  tallest: { emoji: '👠', title: 'TALLEST PERSON', prop: 'heels' },
+  bigbrain: { emoji: '🧠', title: 'BIG BRAIN', prop: 'brain' },
+  sleepy: { emoji: '😴', title: 'SLEEPING CHAMPION', prop: 'sleep' },
+  late: { emoji: '⏰', title: 'LATE COMER', prop: 'clock' },
+  foodie: { emoji: '🍗', title: 'FOOD MONSTER', prop: 'chicken' },
+  phone: { emoji: '📱', title: 'PHONE ADDICT', prop: 'phone' },
+  drama: { emoji: '👑', title: 'DRAMA STAR', prop: 'crown' },
+  bestie: { emoji: '🤝', title: 'BEST FRIEND', prop: 'hearts2' },
+  custom: { emoji: '🏆', title: '', prop: 'star' },
 };
 
 const clean = (v, n) => String(v ?? '').replace(/[\u0000-\u0009\u000b-\u001f]/g, ' ').trim().slice(0, n);
@@ -58,7 +77,7 @@ function readWish() {
     if (!d) return null;
     const o = JSON.parse(b64urlDecode(d));
     const w = {
-      kind: ['ty', 'bday', 'rx'].includes(o.k) ? o.k : PAGE_KIND,
+      kind: ['ty', 'bday', 'rx', 'aw'].includes(o.k) ? o.k : PAGE_KIND,
       to: clean(o.t, 24),
       from: clean(o.f, 24),
       msg: clean(o.m, 220),
@@ -68,6 +87,8 @@ function readWish() {
       rel: RELS[o.l] ? o.l : '',
       react: REACTS[o.x] ? o.x : 'love',
       reply: o.y === 1,
+      award: AWARDS[o.a] ? o.a : 'custom',
+      awardTitle: clean(o.c, 28).toUpperCase().replace(/\s*AWARD$/, ''),
     };
     return w.to ? w : null;
   } catch {
@@ -76,11 +97,16 @@ function readWish() {
 }
 
 const DEMO_RX = { kind: 'rx', to: 'Friend', from: 'iNiXR', id: '', demo: true, item: 'heart', rel: '', react: 'wow', msg: 'You are amazing! 😍' };
-const W = readWish() || (PAGE_KIND === 'rx' ? DEMO_RX : PAGE_KIND === 'ty'
+const DEMO_AW = { kind: 'aw', to: 'Friend', from: 'iNiXR', id: '', demo: true, item: 'heart', rel: '', react: 'love', award: 'liar', awardTitle: '', msg: 'Congratulations on lying for 365 days straight 😂🏆' };
+const W = readWish() || (PAGE_KIND === 'aw' ? DEMO_AW : PAGE_KIND === 'rx' ? DEMO_RX : PAGE_KIND === 'ty'
   ? { kind: 'ty', to: 'Friend', from: 'iNiXR', id: '', demo: true, item: 'heart', rel: '', msg: 'Thank you for being amazing! 💖' }
   : { kind: 'bday', to: 'Friend', from: 'iNiXR', id: '', demo: true, item: 'heart', rel: '', msg: 'Wishing you a year full of smiles, surprises and magic! 🎉' });
 const IS_TY = W.kind === 'ty';
 const IS_RX = W.kind === 'rx';
+const IS_AW = W.kind === 'aw';
+const IS_BOX = IS_TY || IS_AW;          // gift-box flow: thank-you + awards
+const AWARD = AWARDS[W.award || 'liar'];
+const AW_TITLE = (W.award === 'custom' ? W.awardTitle : AWARD.title) || 'SUPERSTAR';
 const HEARTY = IS_TY || IS_RX;          // thank-you + reactions share the hearts theme
 const ITEM = ITEM_INFO[W.item];
 const REACT = REACTS[W.react || 'love'];
@@ -558,6 +584,20 @@ const sfx = {
     ['C5', 'E5', 'G5', 'C6'].forEach((n, i) => musicBox(freq(n), t + i * 0.09, 0.4, 0.16));
     ['C5', 'E5', 'G5', 'C6'].forEach((n) => musicBox(freq(n), t + 0.42, 1.2, 0.1));
   },
+  drumroll(sec) {
+    if (!actx) return;
+    const t0 = actx.currentTime;
+    for (let t = 0; t < sec; t += 0.045) {
+      noise(t0 + t, 0.06, 0.08 + (t / sec) * 0.3, 'bandpass', 900, 300);
+    }
+    noise(t0 + sec, 0.4, 0.6, 'lowpass', 3000, 200);
+    tone(80, t0 + sec, 0.4, 0.4, 'sine');
+  },
+  applause() {
+    if (!actx) return;
+    const t0 = actx.currentTime;
+    for (let i = 0; i < 90; i++) noise(t0 + rand(0, 2.4), 0.05, rand(0.05, 0.16), 'bandpass', rand(1200, 3000), 800);
+  },
   shutter() {
     if (!actx) return;
     const t = actx.currentTime;
@@ -589,6 +629,7 @@ const TY_SONG = [
   [['G4', 0.5, 'G2'], ['B4', 0.5], ['D5', 0.5], ['G5', 0.5]],
   [['E5', 0.5, 'C3'], ['G5', 0.5], ['C6', 2]],
 ];
+const AW_LYRICS = ['', '', `Congratulations, ${W.to}! 😂👏`, '', 'Speech! Speech! 🎤', ''];
 const TY_LYRICS = ['', '', `Thank you, ${W.to} 💖`, '', ITEM.label ? `for ${ITEM.label} ${ITEM.emoji}` : '', ''];
 
 let songTimers = [];
@@ -1076,7 +1117,11 @@ const TREATS = {
 
 // Builds the chosen treat, normalised to ~1 unit, centred on the origin.
 function buildItem(key) {
-  const model = (TREATS[key] || TREATS.heart)();
+  return normalized((TREATS[key] || TREATS.heart)(), 1.2);
+}
+
+// Wraps a model so its largest side is `size` and it is centred on the origin.
+function normalized(model, target) {
   const puffs = [];
   model.traverse((o) => { if (o.isSprite) puffs.push(o); });
   puffs.forEach((o) => o.parent.remove(o));          // keep steam out of the size measurement
@@ -1087,14 +1132,238 @@ function buildItem(key) {
   const inner = new THREE.Group();
   inner.add(model);
   model.position.sub(center);
-  inner.scale.setScalar(1.2 / Math.max(size.x, size.y, size.z));
+  inner.scale.setScalar(target / Math.max(size.x, size.y, size.z));
   puffs.forEach((o) => model.add(o));
   const outer = new THREE.Group();
   outer.add(inner);
   return outer;
 }
 
-const ty = { lid: null, heart: null, heartGlow: null, text: null, opened: false };
+// ── Funny award props + the trophy ──────────────────────────────
+const PROPS = {
+  beer() {
+    const g = new THREE.Group();
+    const glass = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.05, transparent: true, opacity: 0.3, clearcoat: 1, side: THREE.DoubleSide, depthWrite: false });
+    g.add(mesh(new THREE.CylinderGeometry(0.22, 0.2, 0.5, 32, 1, true), glass));
+    g.add(mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.04, 32), glass, 0, -0.25, 0));
+    g.add(mesh(new THREE.CylinderGeometry(0.205, 0.19, 0.4, 32), std(0xf2a900, 0.2, { emissive: 0x5a3000, emissiveIntensity: 0.4 }), 0, -0.04, 0));
+    const foam = std(0xfffaf0, 0.8);
+    for (let i = 0; i < 9; i++) {
+      const a = (i / 9) * Math.PI * 2;
+      g.add(mesh(new THREE.SphereGeometry(rand(0.07, 0.1), 14, 10), foam, Math.cos(a) * 0.14, 0.22 + rand(0, 0.05), Math.sin(a) * 0.14));
+    }
+    g.add(mesh(new THREE.SphereGeometry(0.12, 14, 10), foam, 0, 0.26, 0));
+    const handle = mesh(new THREE.TorusGeometry(0.11, 0.035, 10, 20, Math.PI), glass, 0.22, 0, 0);
+    handle.rotation.z = -Math.PI / 2;
+    g.add(handle);
+    return g;
+  },
+  teddy() {
+    const g = new THREE.Group();
+    const fur = physical(0x9c6b3c, { roughness: 0.8, clearcoat: 0 });
+    const light = std(0xe6c49a, 0.8);
+    const dark = std(0x2b1a10, 0.4);
+    const body = mesh(new THREE.SphereGeometry(0.26, 24, 18), fur, 0, -0.12, 0);
+    body.scale.set(1, 1.1, 0.9);
+    g.add(body);
+    g.add(mesh(new THREE.SphereGeometry(0.2, 24, 18), fur, 0, 0.26, 0));
+    for (const sx of [-1, 1]) {
+      g.add(mesh(new THREE.SphereGeometry(0.08, 14, 10), fur, sx * 0.15, 0.42, 0));
+      g.add(mesh(new THREE.SphereGeometry(0.045, 12, 8), light, sx * 0.15, 0.42, 0.04));
+      g.add(mesh(new THREE.SphereGeometry(0.03, 10, 8), dark, sx * 0.075, 0.3, 0.17));
+      const arm = mesh(new THREE.SphereGeometry(0.09, 14, 10), fur, sx * 0.25, -0.05, 0.05);
+      arm.scale.set(1, 1.4, 1);
+      g.add(arm);
+      g.add(mesh(new THREE.SphereGeometry(0.1, 14, 10), fur, sx * 0.14, -0.36, 0.08));
+    }
+    g.add(mesh(new THREE.SphereGeometry(0.08, 14, 10), light, 0, 0.22, 0.15));
+    g.add(mesh(new THREE.SphereGeometry(0.03, 10, 8), dark, 0, 0.25, 0.22));
+    g.add(mesh(new THREE.SphereGeometry(0.12, 14, 10), light, 0, -0.1, 0.2));
+    const bow = std(0xff5c9d, 0.4);
+    g.add(mesh(new THREE.SphereGeometry(0.05, 10, 8), bow, 0, 0.08, 0.17));
+    for (const sx of [-1, 1]) {
+      const w = mesh(new THREE.ConeGeometry(0.05, 0.1, 10), bow, sx * 0.07, 0.08, 0.16);
+      w.rotation.z = sx * Math.PI / 2;
+      g.add(w);
+    }
+    return g;
+  },
+  heels() {
+    const g = new THREE.Group();
+    const s = new THREE.Shape();
+    s.moveTo(-0.4, 0);
+    s.quadraticCurveTo(-0.44, 0.09, -0.32, 0.11);
+    s.quadraticCurveTo(-0.12, 0.13, 0.0, 0.15);
+    s.quadraticCurveTo(0.16, 0.3, 0.28, 0.44);
+    s.lineTo(0.36, 0.44);
+    s.lineTo(0.34, 0.32);
+    s.quadraticCurveTo(0.2, 0.2, 0.04, 0.03);
+    s.lineTo(-0.4, 0);
+    const shoe = mesh(new THREE.ExtrudeGeometry(s, { depth: 0.16, bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.02, bevelSegments: 3 }), physical(0xd0021b, { clearcoat: 1, roughness: 0.2 }));
+    shoe.position.z = -0.08;
+    g.add(shoe);
+    g.add(mesh(new THREE.CylinderGeometry(0.018, 0.03, 0.36, 12), std(0x1a1a1a, 0.3), 0.32, 0.17, 0));
+    g.add(mesh(new THREE.BoxGeometry(0.34, 0.012, 0.14), std(0xf5d0d8, 0.6), -0.1, 0.13, 0));
+    g.rotation.y = -0.5;
+    return g;
+  },
+  brain() {
+    const geo = new THREE.SphereGeometry(0.3, 64, 48);
+    const pos = geo.attributes.position;
+    const v = new THREE.Vector3();
+    for (let i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i);
+      const n = 1 + 0.07 * Math.sin(v.x * 34) * Math.sin(v.y * 30) * Math.sin(v.z * 26) + 0.04 * Math.sin(v.y * 60 + v.x * 20);
+      const groove = Math.abs(v.x) < 0.02 ? 0.9 : 1;
+      v.multiplyScalar(n * groove);
+      pos.setXYZ(i, v.x, v.y, v.z);
+    }
+    geo.computeVertexNormals();
+    const g = new THREE.Group();
+    const b = mesh(geo, physical(0xf7a1b5, { roughness: 0.35, clearcoat: 0.8 }));
+    b.scale.set(1.15, 0.85, 1);
+    g.add(b);
+    return g;
+  },
+  liar() {
+    const f = emojiFace('liar');
+    f.rotation.y = 0.85;                 // turn so the long nose shows in profile
+    return f;
+  },
+  sleep() { return emojiFace('sleep'); },
+  clock() {
+    const g = new THREE.Group();
+    const red = physical(0xe53935, { clearcoat: 0.8, roughness: 0.25 });
+    const body = mesh(new THREE.CylinderGeometry(0.27, 0.27, 0.14, 40), red);
+    body.rotation.x = Math.PI / 2;
+    g.add(body);
+    g.add(mesh(new THREE.CircleGeometry(0.23, 40), std(0xffffff, 0.5), 0, 0, 0.072));
+    const ink = std(0x222222, 0.4);
+    const hh = mesh(new THREE.BoxGeometry(0.025, 0.12, 0.01), ink, 0.03, 0.05, 0.08);
+    hh.rotation.z = -0.6;
+    g.add(hh);
+    const mh = mesh(new THREE.BoxGeometry(0.018, 0.18, 0.01), ink, -0.03, 0.08, 0.082);
+    mh.rotation.z = 0.35;
+    g.add(mh);
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      g.add(mesh(new THREE.BoxGeometry(0.012, 0.03, 0.005), ink, Math.sin(a) * 0.19, Math.cos(a) * 0.19, 0.075));
+    }
+    const gold = std(0xffc94a, 0.25, { metalness: 0.9 });
+    for (const sx of [-1, 1]) {
+      g.add(mesh(new THREE.SphereGeometry(0.1, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2), gold, sx * 0.17, 0.26, 0));
+      g.add(mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.12, 8), ink, sx * 0.17, -0.3, 0));
+    }
+    return g;
+  },
+  chicken() { return TREATS.chicken(); },
+  phone() {
+    const g = new THREE.Group();
+    g.add(mesh(new THREE.BoxGeometry(0.32, 0.62, 0.04), physical(0x111111, { roughness: 0.2, clearcoat: 1 })));
+    const [c, ctx] = canvas(256, 512);
+    const gr = ctx.createLinearGradient(0, 0, 0, 512);
+    gr.addColorStop(0, '#6a11cb');
+    gr.addColorStop(1, '#ff5c9d');
+    ctx.fillStyle = gr;
+    ctx.fillRect(0, 0, 256, 512);
+    const icons = ['#25d366', '#e1306c', '#ff0000', '#1da1f2', '#ffcc00', '#00c49a', '#4d96ff', '#ff8a00'];
+    icons.forEach((col, i) => {
+      const x = 40 + (i % 3) * 80, y = 90 + Math.floor(i / 3) * 95;
+      ctx.fillStyle = col;
+      roundRectPath(ctx, x - 26, y - 26, 52, 52, 14);
+      ctx.fill();
+      ctx.fillStyle = '#ff2d55';
+      ctx.beginPath(); ctx.arc(x + 22, y - 22, 14, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('99+', x + 22, y - 17);
+    });
+    const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.29, 0.58), new THREE.MeshBasicMaterial({ map: toTexture(c) }));
+    screen.position.z = 0.021;
+    g.add(screen);
+    g.rotation.z = 0.2;
+    return g;
+  },
+  crown() {
+    const g = new THREE.Group();
+    const gold = std(0xffc94a, 0.2, { metalness: 1, side: THREE.DoubleSide });
+    g.add(mesh(new THREE.CylinderGeometry(0.28, 0.25, 0.16, 40, 1, true), gold));
+    const gems = [0xe53935, 0x1e88e5, 0x43a047, 0xe53935, 0x8e24aa];
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2;
+      g.add(mesh(new THREE.ConeGeometry(0.06, 0.2, 12), gold, Math.sin(a) * 0.27, 0.17, Math.cos(a) * 0.27));
+      g.add(mesh(new THREE.SphereGeometry(0.035, 12, 10), std(0xfff3c4, 0.2, { metalness: 0.6 }), Math.sin(a) * 0.27, 0.28, Math.cos(a) * 0.27));
+      g.add(mesh(new THREE.SphereGeometry(0.035, 12, 10), physical(gems[i], { clearcoat: 1, roughness: 0.1 }), Math.sin(a + 0.63) * 0.275, 0, Math.cos(a + 0.63) * 0.275));
+    }
+    g.rotation.x = 0.25;
+    return g;
+  },
+  hearts2() {
+    const g = new THREE.Group();
+    const a = mesh(heartGeometry(0.5, 0.18), physical(0xff2d6f, { clearcoat: 1, roughness: 0.2 }), -0.14, 0.02, 0);
+    a.rotation.z = 0.25;
+    const b = mesh(heartGeometry(0.44, 0.16), physical(0xff8fc0, { clearcoat: 1, roughness: 0.2 }), 0.16, -0.04, 0.06);
+    b.rotation.z = -0.25;
+    g.add(a, b);
+    return g;
+  },
+  star() {
+    const s = new THREE.Shape();
+    for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * Math.PI * 2 + Math.PI / 2;
+      const r = i % 2 ? 0.14 : 0.32;
+      if (i === 0) s.moveTo(Math.cos(a) * r, Math.sin(a) * r); else s.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+    }
+    const g = new THREE.Group();
+    const m = mesh(new THREE.ExtrudeGeometry(s, { depth: 0.08, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.03, bevelSegments: 3 }), std(0xffd23f, 0.2, { metalness: 0.8 }));
+    m.position.z = -0.04;
+    g.add(m);
+    return g;
+  },
+};
+
+function plateTexture(name) {
+  const [c, ctx] = canvas(512, 160);
+  roundRectPath(ctx, 6, 6, 500, 148, 22);
+  ctx.fillStyle = '#ffd36b';
+  ctx.fill();
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = '#a8741a';
+  ctx.stroke();
+  ctx.fillStyle = '#3b2314';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  fitFont(ctx, name, 800, 96, 460);
+  ctx.fillText(name, 256, 86);
+  return toTexture(c);
+}
+
+// Golden trophy with the funny prop sitting in the cup and the winner's name on the base.
+function buildTrophy(propKey) {
+  const g = new THREE.Group();
+  const gold = std(0xffc94a, 0.22, { metalness: 1, side: THREE.DoubleSide });
+  g.add(mesh(new THREE.BoxGeometry(0.66, 0.18, 0.66), std(0x3b2314, 0.45), 0, 0.09, 0));
+  g.add(mesh(new THREE.BoxGeometry(0.52, 0.12, 0.52), std(0x2a180d, 0.45), 0, 0.24, 0));
+  const plate = new THREE.Mesh(new THREE.PlaneGeometry(0.56, 0.16), new THREE.MeshStandardMaterial({ map: plateTexture(W.to), roughness: 0.4, metalness: 0.3 }));
+  plate.position.set(0, 0.09, 0.332);
+  g.add(plate);
+  g.add(mesh(new THREE.CylinderGeometry(0.05, 0.1, 0.26, 20), gold, 0, 0.43, 0));
+  g.add(mesh(new THREE.SphereGeometry(0.075, 20, 14), gold, 0, 0.56, 0));
+  const cup = [[0.04, 0], [0.12, 0.03], [0.24, 0.12], [0.31, 0.28], [0.33, 0.44], [0.3, 0.45]].map(([x, y]) => new THREE.Vector2(x, y));
+  g.add(mesh(new THREE.LatheGeometry(cup, 40), gold, 0, 0.58, 0));
+  for (const sx of [-1, 1]) {
+    const h = mesh(new THREE.TorusGeometry(0.1, 0.025, 10, 20, Math.PI), gold, sx * 0.34, 0.86, 0);
+    h.rotation.z = sx > 0 ? -Math.PI / 2 : Math.PI / 2;
+    g.add(h);
+  }
+  const prop = normalized((PROPS[propKey] || PROPS.star)(), 0.62);
+  prop.position.y = 1.3;
+  g.add(prop);
+  return normalized(g, 1.25);
+}
+
+const ty = { lid: null, heart: null, heartGlow: null, text: null, opened: false, textY: 2.65 };
 
 function tagTexture() {
   const [c, ctx] = canvas(1024, 512);
@@ -1107,7 +1376,7 @@ function tagTexture() {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#e64a8b';
-  const line1 = W.rel ? `For ${RELS[W.rel]}` : 'For';
+  const line1 = IS_AW ? 'Award for' : W.rel ? `For ${RELS[W.rel]}` : 'For';
   fitFont(ctx, line1, 700, 92, 860);
   ctx.fillText(line1, 512, 170);
   fitFont(ctx, W.to, 800, 170, 860);
@@ -1117,7 +1386,7 @@ function tagTexture() {
 }
 
 // Gold 3D title: a word (THANK YOU / LOVE YOU / …) with the receiver's name under it.
-function buildTitle(word, y) {
+function buildTitle(word, y, sub = '') {
   const textGroup = new THREE.Group();
   textGroup.position.set(0, y, 0);
   textGroup.scale.setScalar(0.0001);
@@ -1153,18 +1422,19 @@ function buildTitle(word, y) {
     textGroup.add(m);
   };
   new FontLoader().loadAsync(TEXT_FONT_URL).then((font) => {
-    text3d(font, word, 0.25, 0.2, 2.0);
+    text3d(font, word, 0.25, sub ? 0.44 : 0.2, 2.0);
+    if (sub) text3d(font, sub, 0.15, 0.17, 1.2);
     if (latinName) text3d(font, W.to, 0.22, -0.18, 1.9);
     else nameSign();
   }).catch(() => {
-    const tex = plaqueTexture(word, W.to, { bg2: '#ffe1ee', line1: '#e64a8b', line2: '#c2185b' });
+    const tex = plaqueTexture(sub ? `${word} ${sub}` : word, W.to, { bg2: '#ffe1ee', line1: '#e64a8b', line2: '#c2185b' });
     textGroup.add(new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.75), new THREE.MeshStandardMaterial({ map: tex })));
   });
   return textGroup;
 }
 
 function buildGift() {
-  const boxMat = new THREE.MeshPhysicalMaterial({ color: 0x8a5cff, roughness: 0.35, clearcoat: 0.6 });
+  const boxMat = new THREE.MeshPhysicalMaterial({ color: IS_AW ? 0xe53935 : 0x8a5cff, roughness: 0.35, clearcoat: 0.6 });
   const ribbonMat = std(0xffc94a, 0.3, { metalness: 0.6 });
 
   const box = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.9, 1.2), boxMat);
@@ -1204,17 +1474,18 @@ function buildGift() {
   ty.lid = lid;
 
   // The heart (or chosen treat) that rises out of the box
-  const heart = buildItem(W.item);
+  const heart = IS_AW ? buildTrophy(AWARD.prop) : buildItem(W.item);
   heart.position.y = 0.5;
   heart.scale.setScalar(0.0001);
   hero.add(heart);
   ty.heart = heart;
-  const hg = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW, color: 0xff5c9d, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+  const hg = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW, color: IS_AW ? 0xffd36b : 0xff5c9d, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
   hg.scale.setScalar(2.4);
   hero.add(hg);
   ty.heartGlow = hg;
 
-  ty.text = buildTitle('THANK YOU', 2.65);
+  ty.textY = IS_AW ? 2.75 : 2.65;
+  ty.text = IS_AW ? buildTitle(AW_TITLE, ty.textY, 'AWARD') : buildTitle('THANK YOU', ty.textY);
 }
 
 // Floating hearts rising gently around the gift (thank-you ambience)
@@ -1238,6 +1509,12 @@ async function openGift() {
   phase = 'hearts';
   $('hint').hidden = true;
   track('gift_open');
+  if (IS_AW) {                                   // 🥁 "And the award goes to…"
+    showLyric('🥁 And the award goes to…');
+    sfx.drumroll(1.6);
+    tween(1.6, (k) => { hero.position.x = Math.sin(k * 60) * 0.03 * k; }).then(() => { hero.position.x = 0; });
+    await wait(1700);
+  }
   sfx.pop();
   sfx.sparkle();
   const lid = ty.lid;
@@ -1259,11 +1536,12 @@ async function openGift() {
   });
   await wait(700);
   tween(1.1, (k) => ty.text.scale.setScalar(Math.max(0.0001, easeOutBack(k))));
-  floaters.visible = true;
+  if (floaters) floaters.visible = true;
   showBalloons();
-  playSong(TY_SONG, TY_LYRICS, 0.32);
+  playSong(TY_SONG, IS_AW ? AW_LYRICS : TY_LYRICS, 0.32);
+  if (IS_AW) { sfx.applause(); showLyric(`🏆 ${AW_TITLE} AWARD`); }
   await wait(2200);
-  setHint({ text: 'Tap the heart balloons to pop them 💕' });
+  setHint({ text: IS_AW ? 'Tap the balloons to pop them 🎈😂' : 'Tap the heart balloons to pop them 💕' });
   await wait(4500);
   $('hint').hidden = true;
   showCard();
@@ -1319,7 +1597,65 @@ function emojiFace(type) {
   };
   const redHeart = (size) => mesh(heartGeometry(size, size * 0.35), physical(0xff2d55, { clearcoat: 1, roughness: 0.2, emissive: 0x5a0015, emissiveIntensity: 0.5 }));
 
-  if (type === 'hug') {
+  if (type === 'liar') {
+    const lookEye = (x) => {
+      const w = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), std(0xffffff, 0.3));
+      w.scale.set(0.09, 0.11, 0.04);
+      g.add(onFace(w, x, 0.14));
+      const p = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 10), dark);
+      p.scale.set(0.045, 0.055, 0.03);
+      g.add(onFace(p, x + 0.045, 0.13, 0.02));
+    };
+    lookEye(-0.2); lookEye(0.2);
+    const flat = mesh(new THREE.BoxGeometry(0.22, 0.03, 0.02), dark);
+    g.add(onFace(flat, 0.03, -0.24));
+    const nose = mesh(new THREE.ConeGeometry(0.06, 0.62, 20), physical(0xffae00, { roughness: 0.5, clearcoat: 0.25 }));
+    nose.rotation.x = Math.PI / 2;
+    nose.position.set(0, -0.02, FACE_R + 0.27);
+    g.add(nose);
+  } else if (type === 'sleep') {
+    arc(-0.2, 0.08, 0.075, 0.02, false);
+    arc(0.2, 0.08, 0.075, 0.02, false);
+    const o = mesh(new THREE.TorusGeometry(0.045, 0.02, 10, 20), dark);
+    g.add(onFace(o, 0, -0.2, 0.01));
+    const [c, ctx] = canvas(256, 256);
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#4d96ff';
+    ctx.lineWidth = 10;
+    [['Z', 60, 200, 110], ['z', 140, 120, 80], ['z', 200, 60, 56]].forEach(([ch, x, y, sz]) => {
+      ctx.font = `900 ${sz}px sans-serif`;
+      ctx.strokeText(ch, x, y);
+      ctx.fillText(ch, x, y);
+    });
+    const zz = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.5), new THREE.MeshBasicMaterial({ map: toTexture(c), transparent: true, depthWrite: false }));
+    zz.position.set(0.5, 0.5, 0.2);
+    g.add(zz);
+  } else if (type === 'party') {
+    arc(-0.2, 0.13, 0.075, 0.02, true);
+    arc(0.2, 0.13, 0.075, 0.02, true);
+    openMouth(-0.12, 0.2);
+    blush(-0.33, -0.03); blush(0.33, -0.03);
+    const hat = mesh(new THREE.ConeGeometry(0.2, 0.42, 28), std(0xffffff, 0.5, { map: stripes('#9b5de5', '#ffd23f') }), 0.12, 0.68, 0);
+    hat.rotation.z = -0.3;
+    g.add(hat);
+    g.add(mesh(new THREE.SphereGeometry(0.06, 12, 10), std(0xff5c9d, 0.4), 0.24, 0.87, 0));
+  } else if (type === 'plead') {
+    for (const sx of [-1, 1]) {
+      const w = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14), std(0xffffff, 0.2));
+      w.scale.set(0.12, 0.14, 0.05);
+      g.add(onFace(w, sx * 0.2, 0.1));
+      const p = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), dark);
+      p.scale.set(0.085, 0.1, 0.04);
+      g.add(onFace(p, sx * 0.2, 0.08, 0.025));
+      const hl = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 8), std(0xffffff, 0.1));
+      hl.scale.set(0.03, 0.035, 0.02);
+      g.add(onFace(hl, sx * 0.2 + 0.03, 0.12, 0.05));
+    }
+    arc(0, -0.25, 0.09, 0.022, true);
+    const tear = mesh(new THREE.SphereGeometry(1, 14, 10), physical(0x5ec8ff, { clearcoat: 1, roughness: 0.1 }));
+    tear.scale.set(0.05, 0.075, 0.04);
+    g.add(onFace(tear, 0.32, -0.02, 0.03));
+  } else if (type === 'hug') {
     arc(-0.2, 0.13, 0.075, 0.02, true);
     arc(0.2, 0.13, 0.075, 0.02, true);
     arc(0, -0.1, 0.22, 0.028, false);
@@ -1367,11 +1703,14 @@ function emojiFace(type) {
 
 const rx = { obj: null, glow: null, text: null };
 function buildReaction() {
-  const obj = W.react === 'love' ? buildItem('heart') : (() => {
-    const o = new THREE.Group();
-    o.add(emojiFace(W.react));
-    return o;
-  })();
+  const FACE = { gang: 'party', missyou: 'plead' };
+  const obj = W.react === 'love' ? buildItem('heart')
+    : W.react === 'bff' ? normalized(PROPS.hearts2(), 1.3)
+      : (() => {
+        const o = new THREE.Group();
+        o.add(emojiFace(FACE[W.react] || W.react));
+        return o;
+      })();
   obj.position.y = 1.35;
   obj.scale.setScalar(0.0001);
   hero.add(obj);
@@ -1597,7 +1936,7 @@ function paintFrame(ctx, w, h) {
   ctx.drawImage(renderer.domElement, 0, 0, w, h);
   // Watermark pill — every shared photo/video points back to the creator.
   const s = w / 420;
-  const label = `${IS_RX ? REACT.emoji : IS_TY ? '💖' : '🎂'} Made with inixr.com/wish`;
+  const label = `${IS_AW ? '🏆' : IS_RX ? REACT.emoji : IS_TY ? '💖' : '🎂'} Make yours free · inixr.com/wish`;
   ctx.font = `800 ${Math.round(15 * s)}px ${FONT}`;
   const tw = ctx.measureText(label).width;
   const ph = 34 * s, pw = tw + 30 * s, px = (w - pw) / 2, py = h - ph - 22 * s;
@@ -1648,9 +1987,11 @@ async function shareShot() {
   if (!shot.blob) return;
   const ext = shot.kind === 'video' ? ($('shotSave').download.split('.').pop()) : 'jpg';
   const file = new File([shot.blob], `${IS_RX ? 'reaction' : IS_TY ? 'thank-you' : 'birthday-surprise'}.${ext}`, { type: shot.blob.type });
-  const text = HEARTY
-    ? `Look what I got ${IS_RX ? REACT.emoji : '💖'} Make one: https://inixr.com/wish/create/`
-    : 'Look at my birthday surprise 🎂 Make one: https://inixr.com/wish/create/';
+  const text = IS_AW
+    ? `😂 I just won the ${AW_TITLE} AWARD 🏆 Want to give your friends an award? Tap 👉 https://inixr.com/wish/create/`
+    : HEARTY
+    ? `Look what I got ${IS_RX ? REACT.emoji : '💖'} Want to send one too? Tap 👉 https://inixr.com/wish/create/`
+    : 'Look at my birthday surprise 🎂 Want to send one too? Tap 👉 https://inixr.com/wish/create/';
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
       await navigator.share({ files: [file], text });
@@ -1832,9 +2173,11 @@ async function reveal() {
   await wait(1200);
   if (IS_RX) {
     playReaction();
-  } else if (IS_TY) {
+  } else if (IS_BOX) {
     phase = 'open';
-    setHint({ text: 'Tap the gift to open it 🎁', main: '🎁 Open the gift', onMain: openGift });
+    setHint(IS_AW
+      ? { text: `${W.from || 'Your friend'} has an award for you 🏆`, main: '🏆 Open my award', onMain: openGift }
+      : { text: 'Tap the gift to open it 🎁', main: '🎁 Open the gift', onMain: openGift });
   } else {
     showBalloons();
     phase = 'light';
@@ -1884,12 +2227,14 @@ async function celebrate() {
 function showCard() {
   phase = 'done';
   $('cardTo').textContent = `Dear ${W.to},`;
-  $('cardMsg').textContent = W.msg || (IS_RX ? `${REACT.word.charAt(0)}${REACT.word.slice(1).toLowerCase()} ${REACT.emoji}` : IS_TY ? 'Thank you so much! 💖' : 'Happy Birthday! 🎂');
+  $('cardMsg').textContent = W.msg || (IS_AW ? `You've won the ${AW_TITLE} AWARD! 😂🏆` : IS_RX ? `${REACT.word.charAt(0)}${REACT.word.slice(1).toLowerCase()} ${REACT.emoji}` : IS_TY ? 'Thank you so much! 💖' : 'Happy Birthday! 🎂');
   $('cardFrom').textContent = W.from ? `— with love, ${W.from}` : '';
   $('reactLabel').textContent = W.from ? `React to ${W.from}:` : 'React:';
   const btn = $('primaryBtn');
   btn.className = 'big-btn pink';
-  btn.textContent = W.from ? `💌 Send something back to ${W.from}` : '💌 Send a surprise to someone';
+  btn.textContent = IS_AW
+    ? (W.from ? `🏆 Give an award back to ${W.from}` : '🏆 Give someone an award')
+    : (W.from ? `💌 Send something back to ${W.from}` : '💌 Send a surprise to someone');
   $('card').classList.remove('min');
   $('card').hidden = false;
   arTip('Tap 📸 Photo or 🎥 Video to share it! ✨', 5000);
@@ -1905,7 +2250,7 @@ async function replay() {
     rx.text.scale.setScalar(0.0001);
     floaters.visible = false;
     warmLight.intensity = 0;
-  } else if (IS_TY) {
+  } else if (IS_BOX) {
     ty.opened = false;
     ty.heart.scale.setScalar(0.0001);
     ty.heart.position.y = 0.5;
@@ -1913,7 +2258,7 @@ async function replay() {
     ty.text.scale.setScalar(0.0001);
     ty.lid.position.set(0, 0.99, 0);
     ty.lid.rotation.set(0, 0, 0);
-    floaters.visible = false;
+    if (floaters) floaters.visible = false;
     warmLight.intensity = 0;
   } else {
     flames.forEach((f) => { f.userData.lit = false; f.userData.k = 0; f.visible = false; });
@@ -1995,7 +2340,7 @@ $('cardToggle').addEventListener('click', () => $('card').classList.toggle('min'
 $('primaryBtn').addEventListener('click', () => {
   track('send_back');
   const p = new URLSearchParams();
-  p.set('k', IS_TY || IS_RX ? 'rx' : 'ty');
+  p.set('k', IS_AW ? 'aw' : IS_TY || IS_RX ? 'rx' : 'ty');
   p.set('f', W.to);                            // the viewer becomes the sender
   if (W.from) p.set('t', W.from);
   if (W.id) p.set('r', W.id);
@@ -2083,7 +2428,7 @@ function frame() {
   // Gently turns to show off, but keeps its front toward the viewer.
   hero.rotation.y = Math.sin(t * 0.35) * 0.3;
 
-  if (!IS_TY) {
+  if (W.kind === 'bday') {
     let glow = 0;
     for (const f of flames) {
       const { k, seed, base } = f.userData;
@@ -2114,7 +2459,7 @@ function frame() {
       s.material.opacity = 0.4 * Math.sin(k * Math.PI);
     }
     ty.heartGlow.position.copy(ty.heart.position);
-    ty.text.position.y = 2.65 + Math.sin(t * 1.2) * 0.04;
+    ty.text.position.y = ty.textY + Math.sin(t * 1.2) * 0.04;
   }
 
   for (const b of balloons) {
@@ -2200,7 +2545,14 @@ function frame() {
 
 // ── Boot ────────────────────────────────────────────────────────
 (async function boot() {
-  if (IS_RX) {
+  if (IS_AW) {
+    $('introEmoji').textContent = '🏆';
+    $('introTitle').textContent = W.demo
+      ? 'Preview: this is what they will see 🏆'
+      : `Hey ${W.to}! 🏆 ${W.from || 'Your friend'} has an award for you!`;
+    $('introSub').textContent = 'Turn your sound on 🔊 (drumroll please…)';
+    $('openBtn').textContent = 'Open my award 🏆';
+  } else if (IS_RX) {
     $('introEmoji').textContent = REACT.emoji;
     $('introTitle').textContent = W.demo
       ? 'Preview: this is what they will see 💞'
@@ -2225,7 +2577,7 @@ function frame() {
   try {
     await Promise.race([document.fonts.load(`800 100px ${FONT}`), wait(2500)]);
   } catch { /* fall back to system font */ }
-  if (IS_RX) { buildReaction(); buildFloaters(); } else if (IS_TY) { buildGift(); buildFloaters(); } else { buildCake(); }
+  if (IS_RX) { buildReaction(); buildFloaters(); } else if (IS_BOX) { buildGift(); if (IS_TY) buildFloaters(); } else { buildCake(); }
   buildBalloons();
   requestAnimationFrame(frame);
 })();

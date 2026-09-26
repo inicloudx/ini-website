@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+Thambi+2:wght@500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'wish/wish.css' %}?v=6">
+  <link rel="stylesheet" href="{% static 'wish/wish.css' %}?v=7">
   <script type="importmap">
   {
     "imports": {
@@ -83,13 +83,16 @@
       <button data-x="haha" aria-label="Haha">😂</button>
       <button data-x="wow" aria-label="Wow">😍</button>
       <button data-x="aww" aria-label="Aww">☺️</button>
+      <button data-x="bff" aria-label="Best friends">🤝</button>
+      <button data-x="gang" aria-label="Best gang">🥳</button>
+      <button data-x="missyou" aria-label="Miss you">🥺</button>
     </div>
     <button id="primaryBtn" class="big-btn"></button>
     <div class="card-row">
       <button id="selfieBtn" class="pill-btn">🤳 Selfie with it</button>
       <button id="replayBtn" class="pill-btn">🔁 Replay</button>
     </div>
-    <a class="make-own" id="makeOwn" href="{% url 'wish:create' %}">✨ Make your own AR wish — free</a>
+    <a class="make-own-btn" id="makeOwn" href="{% url 'wish:create' %}">✨ Make your own AR wish — it’s free</a>
   </section>
 
   <!-- 4. Photo preview -->
@@ -121,6 +124,6 @@
 
   <div id="toast" class="toast"></div>
   <noscript><p class="noscript">Please enable JavaScript to open your gift.</p></noscript>
-  <script type="module" src="{% static 'wish/wish.js' %}?v=6"></script>
+  <script type="module" src="{% static 'wish/wish.js' %}?v=7"></script>
 </body>
 </html>

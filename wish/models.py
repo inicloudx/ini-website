@@ -34,7 +34,7 @@ class WishEvent(models.Model):
         ('wa_share', 'Shared to WhatsApp'),
         ('copy', 'Copied link'),
     ]
-    KINDS = [('bday', 'Birthday'), ('ty', 'Thank you'), ('rx', 'Reaction')]
+    KINDS = [('bday', 'Birthday'), ('ty', 'Thank you'), ('rx', 'Reaction'), ('aw', 'Award')]
 
     event = models.CharField(max_length=24, choices=EVENTS, db_index=True)
     kind = models.CharField(max_length=8, choices=KINDS, blank=True, db_index=True)

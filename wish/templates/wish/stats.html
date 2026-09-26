@@ -24,10 +24,10 @@
     <div><b>{{ reciprocity }}%</b>reply rate</div>
   </div>
   <table>
-    <thead><tr><th>Step</th><th class="n">🎂 Birthday</th><th class="n">💖 Thank you</th><th class="n">💞 Reaction</th></tr></thead>
+    <thead><tr><th>Step</th><th class="n">🎂 Birthday</th><th class="n">💖 Thank you</th><th class="n">💞 Reaction</th><th class="n">🏆 Award</th></tr></thead>
     <tbody>
-      {% for label, bday, ty, rx in table %}
-      <tr><td>{{ label }}</td><td class="n">{{ bday }}</td><td class="n">{{ ty }}</td><td class="n">{{ rx }}</td></tr>
+      {% for label, bday, ty, rx, aw in table %}
+      <tr><td>{{ label }}</td><td class="n">{{ bday }}</td><td class="n">{{ ty }}</td><td class="n">{{ rx }}</td><td class="n">{{ aw }}</td></tr>
       {% endfor %}
     </tbody>
   </table>
