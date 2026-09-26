@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+Thambi+2:wght@500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'wish/wish.css' %}">
+  <link rel="stylesheet" href="{% static 'wish/wish.css' %}?v=3">
   <script type="importmap">
   {
     "imports": {
@@ -76,6 +76,6 @@
   <a id="brand" class="brand" href="{% url 'wish:create' %}">✨ Make your own AR wish</a>
 
   <noscript><p class="noscript">Please enable JavaScript to open your gift.</p></noscript>
-  <script type="module" src="{% static 'wish/wish.js' %}"></script>
+  <script type="module" src="{% static 'wish/wish.js' %}?v=3"></script>
 </body>
 </html>
