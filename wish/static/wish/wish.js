@@ -381,6 +381,10 @@ function buildBalloons() {
     if (!HEARTY) body.scale.set(1, 1.18, 1);
     body.userData.balloon = g;
     g.add(shadowed(body));
+    // Invisible, generous tap target — balloons are small on a phone, especially in the room view.
+    const hitbox = new THREE.Mesh(new THREE.SphereGeometry(0.55, 10, 8), new THREE.MeshBasicMaterial({ visible: false }));
+    hitbox.userData.balloon = g;
+    g.add(hitbox);
     const knot = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.07, 10), mat);
     knot.position.y = HEARTY ? -0.3 : -0.37;
     g.add(knot);
@@ -393,7 +397,7 @@ function buildBalloons() {
     const home = new THREE.Vector3(Math.sin(a) * r, y, Math.cos(a) * r);
     g.position.set(home.x, -4, home.z);
     g.visible = false;
-    g.userData = { home, seed: rand(0, 10), shown: 0, fly: 0, flyV: 0, flyX: rand(-0.3, 0.3), popped: false, body };
+    g.userData = { home, seed: rand(0, 10), shown: 0, fly: 0, flyV: 0, flyX: rand(-0.3, 0.3), popped: false, body, hitbox };
     world.add(g);
     balloons.push(g);
   });
@@ -1869,6 +1873,7 @@ function updateTools() {
 
 let switching = false;
 async function setMode(m, gyroAsk) {
+  minimizeCard();
   if (switching || m === mode) return m === mode;
   switching = true;
   try {
@@ -1971,6 +1976,7 @@ function showShot(blob, kind) {
 
 function capture() {
   if (rec) return;
+  minimizeCard();
   track('photo');
   renderer.render(scene, camera);
   const w = renderer.domElement.width, h = renderer.domElement.height;
@@ -2045,6 +2051,8 @@ function startRec() {
     if (chunks.length) showShot(new Blob(chunks, { type }), 'video');
   };
   mr.start(250);
+  minimizeCard();
+  document.body.classList.add('recording');
   rec = { mr, ctx, w, h, t0: performance.now() };
   track('video');
   $('recBtn').classList.add('recording');
@@ -2055,6 +2063,7 @@ function stopRec() {
   if (!rec) return;
   const r = rec;
   rec = null;
+  document.body.classList.remove('recording');
   $('recBtn').classList.remove('recording');
   $('recLabel').textContent = 'Video';
   if (r.mr.state !== 'inactive') r.mr.stop();
@@ -2196,7 +2205,7 @@ async function lightCandles() {
   });
   await wait(flames.length * 170 + 400);
   phase = 'blow';
-  setHint({ text: 'Make a wish… then blow! 🌬️', main: '🎤 Blow with mic', onMain: startMic, alt: 'or tap here to blow', onAlt: tapBlow });
+  setHint({ text: 'Make a wish… then blow! 🌬️ (or tap the cake)', main: '🎤 Blow with mic', onMain: startMic, alt: 'or tap here to blow', onAlt: tapBlow });
   playSong(BDAY_SONG, BDAY_LYRICS, 0.52).then(() => { if (phase === 'blow') track('song_done'); });
 }
 
@@ -2273,27 +2282,29 @@ async function replay() {
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 let down = null;
-renderer.domElement.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clientY, t: performance.now() }; });
+renderer.domElement.addEventListener('pointerdown', (e) => { if (e.isPrimary) down = { x: e.clientX, y: e.clientY, t: performance.now() }; });
+renderer.domElement.addEventListener('pointercancel', () => { down = null; });
 renderer.domElement.addEventListener('pointerup', (e) => {
   if (!down) return;
   const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y);
-  const quick = performance.now() - down.t < 450;
+  const quick = performance.now() - down.t < 700;
   down = null;
-  if (moved > 12 || !quick) return;        // a drag, not a tap
+  if (moved > 18 || !quick) return;        // a drag, not a tap
   onTap(e.clientX, e.clientY);
 });
 
 function onTap(x, y) {
   if (phase === 'light') { lightCandles(); return; }
   if (phase === 'open') { openGift(); return; }
+  if (phase === 'blow') { tapBlow(); return; }
   pointer.set((x / innerWidth) * 2 - 1, -(y / innerHeight) * 2 + 1);
   raycaster.setFromCamera(pointer, camera);
   if (IS_RX && rx.obj && rx.obj.scale.x > 0.5 && raycaster.intersectObject(rx.obj, true).length) {
     bounceReaction();
     return;
   }
-  const bodies = balloons.filter((b) => b.visible && !b.userData.popped).map((b) => b.userData.body);
-  const hit = raycaster.intersectObjects(bodies, false)[0];
+  const targets = balloons.filter((b) => b.visible && !b.userData.popped).map((b) => b.userData.hitbox);
+  const hit = raycaster.intersectObjects(targets, false)[0];
   if (hit) {
     popBalloon(hit.object.userData.balloon);
     if (HEARTY) track('heart_pop');
@@ -2334,7 +2345,9 @@ $('selfieBtn').addEventListener('click', () => {
   setMode(next, next === 'room' ? askGyro() : null);
 });
 $('replayBtn').addEventListener('click', replay);
-$('cardToggle').addEventListener('click', () => $('card').classList.toggle('min'));
+function minimizeCard() { $('card').classList.add('min'); }
+$('cardToggle').addEventListener('click', minimizeCard);
+$('cardShow').addEventListener('click', () => $('card').classList.remove('min'));
 
 // "Send something back": opens the creator with names swapped; the viewer picks what to send.
 $('primaryBtn').addEventListener('click', () => {

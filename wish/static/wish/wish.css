@@ -262,3 +262,56 @@ button { font-family: inherit; cursor: pointer; border: 0; }
 .make-own-btn:active { transform: scale(0.97); }
 .card.min .make-own-btn, .card.min .react-row { display: none; }
 .react-row button { width: 42px; height: 42px; font-size: 1.35rem; }
+
+/* ── Card scrolls on small phones; collapses to a pill ─────────── */
+.card {
+  max-height: calc(100vh - 110px);
+  max-height: calc(100dvh - 110px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.card-mini { display: none; }
+.card.min {
+  left: 12px; right: auto; max-width: none;
+  padding: 0; background: none; border: 0; backdrop-filter: none;
+  overflow: visible;
+}
+.card.min > * { display: none !important; }
+.card.min > .card-mini {
+  display: block !important;
+  background: rgba(20, 8, 32, 0.72); color: var(--ink);
+  border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 999px;
+  font-weight: 800; font-size: 0.95rem; padding: 0.65em 1.1em;
+  backdrop-filter: blur(8px);
+}
+body.recording .card, body.recording .hint, body.recording #arTip { display: none !important; }
+
+/* Hint text never blocks taps on the 3D scene — only its buttons are tappable. */
+.hint { pointer-events: none; }
+.hint button { pointer-events: auto; }
+
+/* Modals scroll if the phone is short. */
+.shot { overflow-y: auto; justify-content: flex-start; }
+.shot > * { margin-top: auto; }
+.shot > *:last-child { margin-bottom: auto; }
+
+/* Compact card: at most ~half the screen so the 3D gift stays visible. */
+.card { z-index: 19; max-height: 50vh; max-height: 50dvh; padding: 14px 14px 12px; }
+.card-msg { font-size: 1.05rem; }
+.card-to, .card-from { font-size: 0.95rem; }
+.card .big-btn { font-size: 1rem; padding: 0.7em 1.2em; }
+.card-row { margin-top: 8px; }
+.card-row .pill-btn { font-size: 0.85rem; padding: 0.5em 0.9em; }
+.react-row { margin-bottom: 10px; gap: 3px; }
+.react-row button { width: 38px; height: 38px; font-size: 1.2rem; }
+.make-own-btn { margin-top: 8px; padding: 0.6em 1em; font-size: 0.9rem; }
+.card-toggle { position: sticky; float: right; top: 0; margin: -4px -4px 0 0; z-index: 1; }
+
+/* Slimmer camera tools on short phones. */
+@media (max-height: 760px) {
+  .tools { gap: 5px; }
+  .tool { width: 50px; padding: 4px 0 3px; font-size: 0.62rem; }
+  .tool span { font-size: 1.1rem; }
+  .tool.snap { margin-top: 3px; }
+}

@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+Thambi+2:wght@500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'wish/wish.css' %}?v=7">
+  <link rel="stylesheet" href="{% static 'wish/wish.css' %}?v=8">
   <script type="importmap">
   {
     "imports": {
@@ -69,7 +69,8 @@
 
   <!-- 3. Message card -->
   <section id="card" class="card" hidden>
-    <button id="cardToggle" class="card-toggle" aria-label="Hide message">▾</button>
+    <button id="cardToggle" class="card-toggle" aria-label="Hide message">✕</button>
+    <button id="cardShow" class="card-mini" aria-label="Show message">💌 Show message</button>
     <div class="card-body">
       <p class="card-to" id="cardTo"></p>
       <p class="card-msg" id="cardMsg"></p>
@@ -124,6 +125,6 @@
 
   <div id="toast" class="toast"></div>
   <noscript><p class="noscript">Please enable JavaScript to open your gift.</p></noscript>
-  <script type="module" src="{% static 'wish/wish.js' %}?v=7"></script>
+  <script type="module" src="{% static 'wish/wish.js' %}?v=8"></script>
 </body>
 </html>
