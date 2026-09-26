@@ -28,6 +28,7 @@ urlpatterns = [
     path('contact/', include('contact.urls', namespace='contact')),
     path('portfolio/', include('portfolio.urls', namespace='portfolio')),
     path('partner/', include('partner.urls', namespace='partner')),
+    path('wish/', include('wish.urls', namespace='wish')),
 
 ]
 

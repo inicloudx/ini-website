@@ -1,0 +1,74 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1a0b2e">
+  <title>A birthday surprise for you 🎁</title>
+  <meta name="description" content="Someone special sent you a 3D birthday cake. Tap to open!">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="🎁 A birthday surprise is waiting for you!">
+  <meta property="og:description" content="Tap to open your 3D birthday cake 🎂 Blow out the candles!">
+  <meta property="og:image" content="{{ og_image }}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="{{ og_url }}">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="{% static 'images/favicon.ico' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+Thambi+2:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'wish/wish.css' %}">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body data-evt="{% url 'wish:track' %}" data-create="{% url 'wish:create' %}">
+  <video id="cam" playsinline muted autoplay></video>
+  <div id="stage"></div>
+
+  <button id="mute" class="icon-btn" aria-label="Sound on/off" hidden>🔊</button>
+  <button id="exitRoom" class="pill-btn top-left" hidden>✕ Exit room view</button>
+
+  <!-- 1. Gift intro -->
+  <section id="intro" class="overlay">
+    <div class="gift" aria-hidden="true">🎁</div>
+    <h1 id="introTitle">Someone special sent you a surprise!</h1>
+    <p class="sub">Turn your sound on 🔊</p>
+    <button id="openBtn" class="big-btn">Open my gift ✨</button>
+  </section>
+
+  <!-- 2. Lyrics / hints -->
+  <div id="lyric" class="lyric" aria-live="polite"></div>
+  <div id="hint" class="hint" hidden>
+    <p id="hintText">Make a wish… and blow out the candles! 🌬️</p>
+    <div id="meter" class="meter"><i></i></div>
+    <div class="hint-actions">
+      <button id="micBtn" class="big-btn">🎤 Blow with mic</button>
+      <button id="tapBtn" class="link-btn">or tap here to blow</button>
+    </div>
+  </div>
+
+  <!-- 3. Message card -->
+  <section id="card" class="card" hidden>
+    <p class="card-to" id="cardTo"></p>
+    <p class="card-msg" id="cardMsg"></p>
+    <p class="card-from" id="cardFrom"></p>
+    <button id="sendBack" class="big-btn">🎁 Send a wish back</button>
+    <div class="card-row">
+      <button id="roomBtn" class="pill-btn">📷 See it in my room</button>
+      <button id="replayBtn" class="pill-btn">🔁 Replay</button>
+    </div>
+  </section>
+
+  <a id="brand" class="brand" href="{% url 'wish:create' %}">✨ Make your own AR wish · iNiXR</a>
+
+  <noscript><p class="noscript">Please enable JavaScript to open your gift.</p></noscript>
+  <script type="module" src="{% static 'wish/wish.js' %}"></script>
+</body>
+</html>
