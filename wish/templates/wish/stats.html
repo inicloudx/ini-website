@@ -20,14 +20,14 @@
   <h1>🎂 AR wish test</h1>
   <div class="kpi">
     <div><b>{{ opened }}</b>wishes opened</div>
-    <div><b>{{ sent_back }}</b>got a thank-you back</div>
+    <div><b>{{ sent_back }}</b>got a reply back</div>
     <div><b>{{ reciprocity }}%</b>reply rate</div>
   </div>
   <table>
-    <thead><tr><th>Step</th><th class="n">🎂 Birthday</th><th class="n">💖 Thank you</th></tr></thead>
+    <thead><tr><th>Step</th><th class="n">🎂 Birthday</th><th class="n">💖 Thank you</th><th class="n">💞 Reaction</th></tr></thead>
     <tbody>
-      {% for label, bday, ty in table %}
-      <tr><td>{{ label }}</td><td class="n">{{ bday }}</td><td class="n">{{ ty }}</td></tr>
+      {% for label, bday, ty, rx in table %}
+      <tr><td>{{ label }}</td><td class="n">{{ bday }}</td><td class="n">{{ ty }}</td><td class="n">{{ rx }}</td></tr>
       {% endfor %}
     </tbody>
   </table>

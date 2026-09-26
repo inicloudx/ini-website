@@ -26,6 +26,7 @@ class WishEvent(models.Model):
         ('photo_share', 'Shared photo'),
         ('video', 'Recorded video'),
         ('video_share', 'Shared video'),
+        ('react', 'Tapped a reaction'),
         ('replay', 'Replay'),
         ('send_back', 'Tapped say thank you'),
         ('create_open', 'Creator opened'),
@@ -33,7 +34,7 @@ class WishEvent(models.Model):
         ('wa_share', 'Shared to WhatsApp'),
         ('copy', 'Copied link'),
     ]
-    KINDS = [('bday', 'Birthday'), ('ty', 'Thank you')]
+    KINDS = [('bday', 'Birthday'), ('ty', 'Thank you'), ('rx', 'Reaction')]
 
     event = models.CharField(max_length=24, choices=EVENTS, db_index=True)
     kind = models.CharField(max_length=8, choices=KINDS, blank=True, db_index=True)

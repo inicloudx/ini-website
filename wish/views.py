@@ -31,6 +31,12 @@ _OG = {
         'image': 'wish/og_thanks.png',
         'page_title': 'A thank-you gift for you 💖',
     },
+    'rx': {
+        'title': '💞 You’ve got a special reaction!',
+        'desc': 'Tap to see it pop up in 3D, right in your room ✨',
+        'image': 'wish/og_react.png',
+        'page_title': 'A reaction for you 💞',
+    },
 }
 
 
@@ -47,6 +53,7 @@ def _ctx(request, kind='bday'):
         'og_url': base + request.path,
         'view_url': base + reverse('wish:view'),
         'thanks_url': base + reverse('wish:thanks'),
+        'react_url': base + reverse('wish:react'),
     }
 
 
@@ -56,6 +63,10 @@ def view_wish(request):
 
 def view_thanks(request):
     return render(request, 'wish/view.html', _ctx(request, 'ty'))
+
+
+def view_react(request):
+    return render(request, 'wish/view.html', _ctx(request, 'rx'))
 
 
 def create_wish(request):
@@ -87,10 +98,10 @@ def stats(request):
     counts = {}
     for r in rows:
         counts.setdefault(r['event'], {})[r['kind'] or 'bday'] = r['total']
-    table = [(label, counts.get(key, {}).get('bday', 0), counts.get(key, {}).get('ty', 0))
+    table = [(label, counts.get(key, {}).get('bday', 0), counts.get(key, {}).get('ty', 0), counts.get(key, {}).get('rx', 0))
              for key, label in WishEvent.EVENTS]
 
-    opened = set(WishEvent.objects.filter(event='start', kind__in=['bday', ''])
+    opened = set(WishEvent.objects.filter(event='start')
                  .exclude(wid='').values_list('wid', flat=True))
     replied = set(WishEvent.objects.filter(event='link_created').exclude(ref='')
                   .values_list('ref', flat=True))

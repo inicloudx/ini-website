@@ -3,7 +3,7 @@
 (function () {
   var $ = function (id) { return document.getElementById(id); };
   var EVT_URL = document.body.dataset.evt;
-  var VIEW_URL = { bday: document.body.dataset.view, ty: document.body.dataset.thanks };
+  var VIEW_URL = { bday: document.body.dataset.view, ty: document.body.dataset.thanks, rx: document.body.dataset.react };
 
   var KINDS = {
     bday: {
@@ -20,6 +20,15 @@
         ['தமிழ் 2', 'பிறந்தநாள் வாழ்த்துக்கள்! 🎉 நீங்கள் நினைத்தது எல்லாம் நடக்கட்டும்!'],
         ['Tanglish', 'Happy Birthday da! 🎂 Innum neraya vayasu aagattum… treat eppo? 😄'],
       ],
+    },
+    rx: {
+      emoji: '💞',
+      title: 'Send love, hugs & more',
+      sub: 'A big 3D emoji pops up in their room — love, hug, kiss, laugh!',
+      toLabel: 'Send it to',
+      msgLabel: 'Add a note (optional)',
+      waText: function (to, url, from) { return react.emoji + ' ' + to + ', ' + (from || 'someone') + ' ' + react.verb + '! Tap to see it in 3D 👉 ' + url; },
+      chips: [],
     },
     ty: {
       emoji: '💖',
@@ -96,11 +105,32 @@
     ['brother', 'Brother'], ['sister', 'Sister'], ['amma', 'Amma'], ['appa', 'Appa'], ['teacher', 'Teacher'],
     ['colleague', 'Colleague'], ['kind', 'Someone kind ✨'],
   ];
-  var item = ITEMS[0], rel = '', autoMsg = '';
+  // Reactions (must match REACTS in wish.js).
+  var REACTS = [
+    { key: 'love', chip: '❤️ Love', emoji: '❤️', verb: 'sent you love', msgs: [
+      ['English', 'Love you so much ❤️'], ['Tanglish', 'Love you di/da ❤️ Always!'], ['தமிழ்', 'உன்னை ரொம்ப பிடிக்கும் ❤️'],
+    ] },
+    { key: 'hug', chip: '🤗 Hug', emoji: '🤗', verb: 'sent you a big hug', msgs: [
+      ['English', 'Sending you the biggest, warmest hug 🤗'], ['Tanglish', 'Oru periya hug 🤗 Take care!'], ['தமிழ்', 'உனக்கு ஒரு பெரிய அணைப்பு 🤗'],
+    ] },
+    { key: 'kiss', chip: '😘 Kiss', emoji: '😘', verb: 'sent you a kiss', msgs: [
+      ['English', 'Muah! 😘 Missing you already'], ['Tanglish', 'Muah! 😘 Seekiram vaa!'],
+    ] },
+    { key: 'haha', chip: '😂 Haha', emoji: '😂', verb: 'is laughing', msgs: [
+      ['English', 'Hahaha you made my day 😂'], ['Tanglish', 'Semma comedy da 😂'],
+    ] },
+    { key: 'wow', chip: '😍 Wow', emoji: '😍', verb: 'loved it', msgs: [
+      ['English', 'Wow! You are amazing 😍'], ['Tanglish', 'Vera level 😍'],
+    ] },
+    { key: 'aww', chip: '☺️ Aww', emoji: '☺️', verb: 'is blushing', msgs: [
+      ['English', 'Aww, you are the sweetest ☺️'], ['Tanglish', 'Aww, romba sweet ☺️'],
+    ] },
+  ];
+  var item = ITEMS[0], rel = '', autoMsg = '', react = REACTS[0];
 
   var hash = new URLSearchParams(location.hash.slice(1));
   var ref = /^[a-z0-9]{1,12}$/.test(hash.get('r') || '') ? hash.get('r') : '';
-  var kind = hash.get('k') === 'ty' ? 'ty' : 'bday';
+  var kind = ['ty', 'rx'].indexOf(hash.get('k')) >= 0 ? hash.get('k') : 'bday';
   if (hash.get('f')) $('from').value = hash.get('f').slice(0, 24);
   if (hash.get('t')) $('to').value = hash.get('t').slice(0, 24);
   history.replaceState(null, '', location.pathname);
@@ -128,12 +158,16 @@
     document.title = K.title + ' ' + K.emoji;
     document.querySelectorAll('.kind').forEach(function (b) { b.classList.toggle('active', b.dataset.kind === k); });
     $('tyExtras').hidden = k !== 'ty';
+    $('rxExtras').hidden = k !== 'rx';
     renderMsgChips();
     // Replying with a thank-you: start from a ready message so it takes one tap.
     if (k === 'ty' && ref && !$('msg').value) setAutoMsg(K.chips[0][1]);
+    var m = $('msg').value.trim();
+    if (m && m === autoMsg && msgChips().length) setAutoMsg(msgChips()[0][1]);
   }
 
   function msgChips() {
+    if (kind === 'rx') return react.msgs;
     return kind === 'ty' && item.msgs ? item.msgs : KINDS[kind].chips;
   }
   function setAutoMsg(text) {
@@ -174,6 +208,13 @@
       renderMsgChips();
       renderPickers();
     });
+    pickChips($('reactChips'), REACTS, function (r) { return r === react; }, function (r) {
+      react = r;
+      var msg = $('msg').value.trim();
+      if (!msg || msg === autoMsg) setAutoMsg(r.msgs[0][1]);
+      renderMsgChips();
+      renderPickers();
+    });
     pickChips($('relChips'), RELS, function (r) { return r[0] === rel; }, function (r) {
       rel = rel === r[0] ? '' : r[0];
       renderPickers();
@@ -211,7 +252,7 @@
       $('to').focus();
       return null;
     }
-    var key = kind + '|' + to + '|' + from + '|' + msg + '|' + item.key + '|' + rel;
+    var key = kind + '|' + to + '|' + from + '|' + msg + '|' + item.key + '|' + rel + '|' + react.key;
     if (key !== current.key) current = { key: key, id: newId(), tracked: false };
     if (!current.tracked) { track('link_created', current.id); current.tracked = true; }
     var data = { k: kind, t: to, f: from, m: msg, i: current.id };
@@ -219,14 +260,18 @@
       if (item.key !== 'heart') data.o = item.key;
       if (rel) data.l = rel;
     }
-    return { to: to, url: VIEW_URL[kind] + '#d=' + b64url(JSON.stringify(data)) };
+    if (kind === 'rx') {
+      data.x = react.key;
+      if (ref) data.y = 1;
+    }
+    return { to: to, from: from, url: VIEW_URL[kind] + '#d=' + b64url(JSON.stringify(data)) };
   }
 
   $('waBtn').addEventListener('click', function () {
     var l = buildLink();
     if (!l) return;
     track('wa_share', current.id);
-    var wa = 'https://wa.me/?text=' + encodeURIComponent(KINDS[kind].waText(l.to, l.url));
+    var wa = 'https://wa.me/?text=' + encodeURIComponent(KINDS[kind].waText(l.to, l.url, l.from));
     if (!window.open(wa, '_blank')) location.href = wa;
   });
 

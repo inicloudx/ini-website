@@ -6,6 +6,7 @@ app_name = 'wish'
 urlpatterns = [
     path('', views.view_wish, name='view'),
     path('thanks/', views.view_thanks, name='thanks'),
+    path('r/', views.view_react, name='react'),
     path('create/', views.create_wish, name='create'),
     path('e/', views.track, name='track'),
     path('stats/', views.stats, name='stats'),

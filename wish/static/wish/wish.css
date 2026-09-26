@@ -226,3 +226,28 @@ button { font-family: inherit; cursor: pointer; border: 0; }
 .toast.show { opacity: 1; }
 
 .noscript { position: fixed; inset: 40% 0 auto; text-align: center; }
+
+/* ── Reactions ─────────────────────────── */
+.react-row { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 0 0 12px; flex-wrap: wrap; }
+.react-row span { font-weight: 800; font-size: 0.9rem; color: var(--muted); margin-right: 4px; width: 100%; }
+.react-row button {
+  width: 46px; height: 46px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12); border: 1px solid var(--glass-line);
+  font-size: 1.5rem; line-height: 1; transition: transform 0.12s ease;
+}
+.react-row button:active { transform: scale(1.25); }
+.react-box {
+  width: 100%; max-width: 380px; text-align: center;
+  background: var(--glass); border: 1px solid var(--glass-line); border-radius: 26px;
+  padding: 20px 18px 10px; backdrop-filter: blur(12px);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.react-big { font-size: 4.2rem; line-height: 1; animation: wobble 1.6s ease-in-out infinite; }
+.react-title { margin: 0; font-size: 1.2rem; font-weight: 800; }
+.react-box input {
+  width: 100%; font: inherit; font-size: 1.05rem; color: var(--ink);
+  background: rgba(255, 255, 255, 0.08); border: 1px solid var(--glass-line); border-radius: 14px;
+  padding: 0.7em 0.9em; outline: none;
+}
+.react-box input:focus { border-color: var(--accent); }
+.react-err { margin: 0; min-height: 1em; color: #ffb4b4; font-weight: 700; font-size: 0.9rem; }

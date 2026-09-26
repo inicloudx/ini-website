@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+Thambi+2:wght@500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'wish/wish.css' %}?v=5">
+  <link rel="stylesheet" href="{% static 'wish/wish.css' %}?v=6">
   <script type="importmap">
   {
     "imports": {
@@ -28,7 +28,7 @@
   }
   </script>
 </head>
-<body class="kind-{{ kind }}" data-kind="{{ kind }}" data-evt="{% url 'wish:track' %}" data-create="{% url 'wish:create' %}">
+<body class="kind-{{ kind }}" data-kind="{{ kind }}" data-evt="{% url 'wish:track' %}" data-create="{% url 'wish:create' %}" data-react="{% url 'wish:react' %}">
   <video id="cam" playsinline muted autoplay></video>
   <div id="stage"></div>
   <div id="flash" class="flash"></div>
@@ -75,6 +75,15 @@
       <p class="card-msg" id="cardMsg"></p>
       <p class="card-from" id="cardFrom"></p>
     </div>
+    <div class="react-row" id="reactRow">
+      <span id="reactLabel">React:</span>
+      <button data-x="love" aria-label="Love">❤️</button>
+      <button data-x="hug" aria-label="Hug">🤗</button>
+      <button data-x="kiss" aria-label="Kiss">😘</button>
+      <button data-x="haha" aria-label="Haha">😂</button>
+      <button data-x="wow" aria-label="Wow">😍</button>
+      <button data-x="aww" aria-label="Aww">☺️</button>
+    </div>
     <button id="primaryBtn" class="big-btn"></button>
     <div class="card-row">
       <button id="selfieBtn" class="pill-btn">🤳 Selfie with it</button>
@@ -96,8 +105,22 @@
     </div>
   </section>
 
+  <!-- 5. Quick reaction -->
+  <section id="reactSheet" class="shot" hidden>
+    <div class="react-box">
+      <div class="react-big" id="reactBig">❤️</div>
+      <p class="react-title" id="reactTitle"></p>
+      <input id="reactTo" maxlength="24" placeholder="Their name">
+      <input id="reactFrom" maxlength="24" placeholder="Your name">
+      <input id="reactMsg" maxlength="120" placeholder="Add a sweet note (optional)">
+      <p class="react-err" id="reactErr" role="alert"></p>
+      <button id="reactSend" class="big-btn wa">Send on WhatsApp</button>
+      <button id="reactClose" class="link-btn">Cancel</button>
+    </div>
+  </section>
+
   <div id="toast" class="toast"></div>
   <noscript><p class="noscript">Please enable JavaScript to open your gift.</p></noscript>
-  <script type="module" src="{% static 'wish/wish.js' %}?v=5"></script>
+  <script type="module" src="{% static 'wish/wish.js' %}?v=6"></script>
 </body>
 </html>

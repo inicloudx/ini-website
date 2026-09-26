@@ -9,7 +9,8 @@ import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 const $ = (id) => document.getElementById(id);
 const EVT_URL = document.body.dataset.evt;
 const CREATE_URL = document.body.dataset.create;
-const PAGE_KIND = document.body.dataset.kind === 'ty' ? 'ty' : 'bday';
+const PAGE_KIND = ['ty', 'rx'].includes(document.body.dataset.kind) ? document.body.dataset.kind : 'bday';
+const REACT_URL = document.body.dataset.react;
 const FONT = '"Baloo Thambi 2", system-ui, sans-serif';
 const TEXT_FONT_URL = 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/fonts/helvetiker_bold.typeface.json';
 
@@ -32,6 +33,15 @@ const RELS = {
   brother: 'my brother', sister: 'my sister', amma: 'Amma', appa: 'Appa', teacher: 'my teacher',
   colleague: 'my colleague', kind: 'a kind soul',
 };
+// One-tap reactions (also sendable on their own from the creator).
+const REACTS = {
+  love: { emoji: '❤️', word: 'LOVE YOU', verb: 'loved it', glow: 0xff2d6f },
+  hug: { emoji: '🤗', word: 'BIG HUG', verb: 'sent you a big hug', glow: 0xffb627 },
+  kiss: { emoji: '😘', word: 'MUAH!', verb: 'sent you a kiss', glow: 0xff5c9d },
+  haha: { emoji: '😂', word: 'HAHA!', verb: 'is laughing', glow: 0xffd23f },
+  wow: { emoji: '😍', word: 'WOW!', verb: 'loved it', glow: 0xff5c9d },
+  aww: { emoji: '☺️', word: 'AWW!', verb: 'is blushing', glow: 0xff8fc0 },
+};
 
 const clean = (v, n) => String(v ?? '').replace(/[\u0000-\u0009\u000b-\u001f]/g, ' ').trim().slice(0, n);
 
@@ -48,7 +58,7 @@ function readWish() {
     if (!d) return null;
     const o = JSON.parse(b64urlDecode(d));
     const w = {
-      kind: o.k === 'ty' ? 'ty' : (o.k === 'bday' ? 'bday' : PAGE_KIND),
+      kind: ['ty', 'bday', 'rx'].includes(o.k) ? o.k : PAGE_KIND,
       to: clean(o.t, 24),
       from: clean(o.f, 24),
       msg: clean(o.m, 220),
@@ -56,6 +66,8 @@ function readWish() {
       preview: hp.get('p') === '1',
       item: ITEM_INFO[o.o] ? o.o : 'heart',
       rel: RELS[o.l] ? o.l : '',
+      react: REACTS[o.x] ? o.x : 'love',
+      reply: o.y === 1,
     };
     return w.to ? w : null;
   } catch {
@@ -63,11 +75,15 @@ function readWish() {
   }
 }
 
-const W = readWish() || (PAGE_KIND === 'ty'
+const DEMO_RX = { kind: 'rx', to: 'Friend', from: 'iNiXR', id: '', demo: true, item: 'heart', rel: '', react: 'wow', msg: 'You are amazing! 😍' };
+const W = readWish() || (PAGE_KIND === 'rx' ? DEMO_RX : PAGE_KIND === 'ty'
   ? { kind: 'ty', to: 'Friend', from: 'iNiXR', id: '', demo: true, item: 'heart', rel: '', msg: 'Thank you for being amazing! 💖' }
   : { kind: 'bday', to: 'Friend', from: 'iNiXR', id: '', demo: true, item: 'heart', rel: '', msg: 'Wishing you a year full of smiles, surprises and magic! 🎉' });
 const IS_TY = W.kind === 'ty';
+const IS_RX = W.kind === 'rx';
+const HEARTY = IS_TY || IS_RX;          // thank-you + reactions share the hearts theme
 const ITEM = ITEM_INFO[W.item];
+const REACT = REACTS[W.react || 'love'];
 
 function track(e) {
   if (W.demo || W.preview || !EVT_URL) return;
@@ -289,7 +305,7 @@ Object.assign(sun.shadow.camera, { left: -3.5, right: 3.5, top: 3.5, bottom: -3.
 sun.shadow.bias = -0.0005;
 scene.add(sun);
 
-const warmLight = new THREE.PointLight(IS_TY ? 0xff5c9d : 0xffa64d, 0, 5, 1.6);
+const warmLight = new THREE.PointLight(HEARTY ? 0xff5c9d : 0xffa64d, 0, 5, 1.6);
 warmLight.position.set(0, 2.05, 0.4);
 scene.add(warmLight);
 
@@ -325,22 +341,22 @@ function tween(dur, fn, delay = 0) {
 // ── Balloons (round for birthday, hearts for thank-you) ─────────
 const balloons = [];
 function buildBalloons() {
-  const colors = IS_TY
+  const colors = HEARTY
     ? [0xff2d6f, 0xff8fc0, 0xc13cff, 0xff5c9d, 0xffb3d1, 0xe0115f, 0x9b5de5, 0xff7aa8]
     : [0xff4d6d, 0xffd23f, 0x3ec1d3, 0x9b5de5, 0x00c49a, 0xf15bb5, 0xfb8500, 0x4d96ff];
   // [angle° (0 = toward viewer), radius, height] — sides and back only, never in front of the name.
   const spots = [[75, 2.2, 2.4], [105, 2.0, 3.0], [140, 2.3, 2.2], [165, 2.0, 3.4], [195, 2.2, 3.0], [220, 2.3, 2.3], [255, 2.0, 2.9], [285, 2.2, 2.5]];
-  const geo = IS_TY ? heartGeometry(0.62, 0.22) : new THREE.SphereGeometry(0.3, 32, 24);
+  const geo = HEARTY ? heartGeometry(0.62, 0.22) : new THREE.SphereGeometry(0.3, 32, 24);
   spots.forEach(([deg, r, y], i) => {
     const a = THREE.MathUtils.degToRad(deg);
     const g = new THREE.Group();
     const mat = new THREE.MeshPhysicalMaterial({ color: colors[i], roughness: 0.22, clearcoat: 1, clearcoatRoughness: 0.15 });
     const body = new THREE.Mesh(geo, mat);
-    if (!IS_TY) body.scale.set(1, 1.18, 1);
+    if (!HEARTY) body.scale.set(1, 1.18, 1);
     body.userData.balloon = g;
     g.add(shadowed(body));
     const knot = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.07, 10), mat);
-    knot.position.y = IS_TY ? -0.3 : -0.37;
+    knot.position.y = HEARTY ? -0.3 : -0.37;
     g.add(knot);
     const pts = [];
     for (let j = 0; j <= 14; j++) {
@@ -391,7 +407,7 @@ function buildSparkles() {
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  const pts = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.07, map: GLOW, color: IS_TY ? 0xffb3d1 : 0xffd98a, transparent: true, opacity: 0.8, depthWrite: false, blending: THREE.AdditiveBlending }));
+  const pts = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.07, map: GLOW, color: HEARTY ? 0xffb3d1 : 0xffd98a, transparent: true, opacity: 0.8, depthWrite: false, blending: THREE.AdditiveBlending }));
   pts.visible = false;
   world.add(pts);
   return pts;
@@ -400,14 +416,14 @@ const sparkles = buildSparkles();
 
 const CONF_N = 420;
 const confetti = new THREE.InstancedMesh(
-  IS_TY ? heartGeometry(0.1, 0) : new THREE.PlaneGeometry(0.055, 0.09),
+  HEARTY ? heartGeometry(0.1, 0) : new THREE.PlaneGeometry(0.055, 0.09),
   new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }),
   CONF_N,
 );
 confetti.frustumCulled = false;
 const conf = Array.from({ length: CONF_N }, () => ({ alive: false, p: new THREE.Vector3(), v: new THREE.Vector3(), r: new THREE.Euler(), w: new THREE.Vector3(), life: 0 }));
 {
-  const palette = IS_TY
+  const palette = HEARTY
     ? [0xff2d6f, 0xff8fc0, 0xffffff, 0xc13cff, 0xffd23f, 0xff5c9d]
     : [0xff4d6d, 0xffd23f, 0x3ec1d3, 0x9b5de5, 0x00f5d4, 0xf15bb5, 0xffffff, 0xfb8500];
   const zero = new THREE.Matrix4().makeScale(0, 0, 0);
@@ -1100,6 +1116,53 @@ function tagTexture() {
   return toTexture(c);
 }
 
+// Gold 3D title: a word (THANK YOU / LOVE YOU / …) with the receiver's name under it.
+function buildTitle(word, y) {
+  const textGroup = new THREE.Group();
+  textGroup.position.set(0, y, 0);
+  textGroup.scale.setScalar(0.0001);
+  hero.add(textGroup);
+  const goldMat = new THREE.MeshPhysicalMaterial({ color: 0xffd36b, metalness: 0.85, roughness: 0.22, clearcoat: 0.6, emissive: 0x4a2a00, emissiveIntensity: 0.4 });
+  const text3d = (font, str, size, ty_, maxW) => {
+    const g = new TextGeometry(str, { font, size, depth: size * 0.32, curveSegments: 6, bevelEnabled: true, bevelThickness: size * 0.07, bevelSize: size * 0.05, bevelSegments: 3 });
+    g.center();
+    g.computeBoundingBox();
+    const m = shadowed(new THREE.Mesh(g, goldMat));
+    const w = g.boundingBox.max.x - g.boundingBox.min.x;
+    if (w > maxW) m.scale.setScalar(maxW / w);
+    m.position.y = ty_;
+    textGroup.add(m);
+  };
+  // The 3D font only has Latin letters — other scripts (e.g. Tamil) get a glowing name sign.
+  const latinName = /^[A-Za-z0-9 .,'&!-]+$/.test(W.to);
+  const nameSign = () => {
+    const [c, ctx] = canvas(1024, 256);
+    fitFont(ctx, W.to, 800, 190, 980);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineWidth = 16;
+    ctx.strokeStyle = '#6b1d3f';
+    ctx.strokeText(W.to, 512, 140);
+    const gr = ctx.createLinearGradient(0, 40, 0, 230);
+    gr.addColorStop(0, '#fff3c4');
+    gr.addColorStop(1, '#ffb83b');
+    ctx.fillStyle = gr;
+    ctx.fillText(W.to, 512, 140);
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 0.45), new THREE.MeshBasicMaterial({ map: toTexture(c), transparent: true, depthWrite: false }));
+    m.position.y = -0.2;
+    textGroup.add(m);
+  };
+  new FontLoader().loadAsync(TEXT_FONT_URL).then((font) => {
+    text3d(font, word, 0.25, 0.2, 2.0);
+    if (latinName) text3d(font, W.to, 0.22, -0.18, 1.9);
+    else nameSign();
+  }).catch(() => {
+    const tex = plaqueTexture(word, W.to, { bg2: '#ffe1ee', line1: '#e64a8b', line2: '#c2185b' });
+    textGroup.add(new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.75), new THREE.MeshStandardMaterial({ map: tex })));
+  });
+  return textGroup;
+}
+
 function buildGift() {
   const boxMat = new THREE.MeshPhysicalMaterial({ color: 0x8a5cff, roughness: 0.35, clearcoat: 0.6 });
   const ribbonMat = std(0xffc94a, 0.3, { metalness: 0.6 });
@@ -1151,50 +1214,7 @@ function buildGift() {
   hero.add(hg);
   ty.heartGlow = hg;
 
-  // "THANK YOU" in 3D (falls back to a flat sign if the font can't load)
-  const textGroup = new THREE.Group();
-  textGroup.position.set(0, 2.65, 0);
-  textGroup.scale.setScalar(0.0001);
-  hero.add(textGroup);
-  ty.text = textGroup;
-  const goldMat = new THREE.MeshPhysicalMaterial({ color: 0xffd36b, metalness: 0.85, roughness: 0.22, clearcoat: 0.6, emissive: 0x4a2a00, emissiveIntensity: 0.4 });
-  const text3d = (font, str, size, y, maxW) => {
-    const g = new TextGeometry(str, { font, size, depth: size * 0.32, curveSegments: 6, bevelEnabled: true, bevelThickness: size * 0.07, bevelSize: size * 0.05, bevelSegments: 3 });
-    g.center();
-    g.computeBoundingBox();
-    const m = shadowed(new THREE.Mesh(g, goldMat));
-    const w = g.boundingBox.max.x - g.boundingBox.min.x;
-    if (w > maxW) m.scale.setScalar(maxW / w);
-    m.position.y = y;
-    textGroup.add(m);
-  };
-  // The 3D font only has Latin letters — other scripts (e.g. Tamil) get a glowing name sign.
-  const latinName = /^[A-Za-z0-9 .,'&!-]+$/.test(W.to);
-  const nameSign = () => {
-    const [c, ctx] = canvas(1024, 256);
-    fitFont(ctx, W.to, 800, 190, 980);
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.lineWidth = 16;
-    ctx.strokeStyle = '#6b1d3f';
-    ctx.strokeText(W.to, 512, 140);
-    const gr = ctx.createLinearGradient(0, 40, 0, 230);
-    gr.addColorStop(0, '#fff3c4');
-    gr.addColorStop(1, '#ffb83b');
-    ctx.fillStyle = gr;
-    ctx.fillText(W.to, 512, 140);
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 0.45), new THREE.MeshBasicMaterial({ map: toTexture(c), transparent: true, depthWrite: false }));
-    m.position.y = -0.2;
-    textGroup.add(m);
-  };
-  new FontLoader().loadAsync(TEXT_FONT_URL).then((font) => {
-    text3d(font, 'THANK YOU', 0.25, 0.2, 2.0);
-    if (latinName) text3d(font, W.to, 0.22, -0.18, 1.9);
-    else nameSign();
-  }).catch(() => {
-    const tex = plaqueTexture('THANK YOU', W.to, { bg2: '#ffe1ee', line1: '#e64a8b', line2: '#c2185b' });
-    textGroup.add(new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.75), new THREE.MeshStandardMaterial({ map: tex })));
-  });
+  ty.text = buildTitle('THANK YOU', 2.65);
 }
 
 // Floating hearts rising gently around the gift (thank-you ambience)
@@ -1247,6 +1267,159 @@ async function openGift() {
   await wait(4500);
   $('hint').hidden = true;
   showCard();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  REACTIONS — 3D emoji faces (❤️ uses the big heart)
+// ═══════════════════════════════════════════════════════════════
+const FACE_R = 0.6;
+// Places a flat feature on the face sphere, facing outward.
+function onFace(obj, x, y, lift = 0.004) {
+  const z = Math.sqrt(Math.max(0, FACE_R * FACE_R - x * x - y * y)) + lift;
+  obj.position.set(x, y, z);
+  obj.lookAt(x * 3, y * 3, z * 3);
+  return obj;
+}
+
+function emojiFace(type) {
+  const g = new THREE.Group();
+  g.add(mesh(new THREE.SphereGeometry(FACE_R, 48, 32), physical(0xffae00, { roughness: 0.5, clearcoat: 0.25, emissive: 0x6b3a00, emissiveIntensity: 0.25 })));
+  const dark = std(0x3b2314, 0.4);
+  const eye = (x, y) => {
+    const e = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), dark);
+    e.scale.set(0.065, 0.1, 0.035);
+    g.add(onFace(e, x, y));
+  };
+  // Half-ring: up = "∩" (happy closed eye), down = "∪" (smile)
+  const arc = (x, y, r, tube, up) => {
+    const wrap = new THREE.Group();
+    const a = new THREE.Mesh(new THREE.TorusGeometry(r, tube, 8, 28, Math.PI), dark);
+    if (!up) a.rotation.z = Math.PI;
+    wrap.add(a);
+    g.add(onFace(wrap, x, y));
+  };
+  const blush = (x, y, r = 0.085) => {
+    const b = new THREE.Mesh(new THREE.CircleGeometry(r, 24), new THREE.MeshBasicMaterial({ color: 0xff7aa8, transparent: true, opacity: 0.6 }));
+    g.add(onFace(b, x, y, 0.008));
+  };
+  const openMouth = (y, w) => {
+    const wrap = new THREE.Group();
+    wrap.add(new THREE.Mesh(new THREE.CircleGeometry(w, 32, Math.PI, Math.PI), std(0x5a1a1a, 0.5, { side: THREE.DoubleSide })));
+    const tongue = new THREE.Mesh(new THREE.CircleGeometry(w * 0.55, 24, Math.PI, Math.PI), std(0xff6f8a, 0.5, { side: THREE.DoubleSide }));
+    tongue.position.set(0, -w * 0.38, 0.003);
+    tongue.scale.y = 0.6;
+    wrap.add(tongue);
+    g.add(onFace(wrap, 0, y, 0.012));
+  };
+  const onSurface = (m, x, y, out) => {
+    const z = Math.sqrt(Math.max(0, FACE_R * FACE_R - x * x - y * y));
+    m.position.set(x, y, z + out);
+    g.add(m);
+    return m;
+  };
+  const redHeart = (size) => mesh(heartGeometry(size, size * 0.35), physical(0xff2d55, { clearcoat: 1, roughness: 0.2, emissive: 0x5a0015, emissiveIntensity: 0.5 }));
+
+  if (type === 'hug') {
+    arc(-0.2, 0.13, 0.075, 0.02, true);
+    arc(0.2, 0.13, 0.075, 0.02, true);
+    arc(0, -0.1, 0.22, 0.028, false);
+    blush(-0.32, -0.02); blush(0.32, -0.02);
+    for (const sx of [-1, 1]) {
+      const hand = mesh(new THREE.SphereGeometry(1, 20, 14), physical(0xffb627, { roughness: 0.4 }));
+      hand.scale.set(0.2, 0.13, 0.12);
+      hand.rotation.z = sx * 0.5;
+      onSurface(hand, sx * 0.3, -0.36, 0.08);
+    }
+  } else if (type === 'kiss') {
+    arc(-0.2, 0.12, 0.075, 0.02, true);             // wink
+    eye(0.2, 0.13);
+    const lips = mesh(new THREE.TorusGeometry(0.05, 0.028, 10, 20), physical(0xe0335f, { roughness: 0.3 }));
+    g.add(onFace(lips, 0.05, -0.18, 0.02));
+    blush(-0.33, -0.04); blush(0.33, -0.04);
+    const h = redHeart(0.2);
+    h.rotation.z = 0.35;
+    onSurface(h, 0.42, -0.1, 0.12);
+  } else if (type === 'haha') {
+    arc(-0.2, 0.14, 0.08, 0.022, true);
+    arc(0.2, 0.14, 0.08, 0.022, true);
+    openMouth(-0.1, 0.27);
+    const tearMat = physical(0x5ec8ff, { clearcoat: 1, roughness: 0.1 });
+    for (const sx of [-1, 1]) {
+      const tear = mesh(new THREE.SphereGeometry(1, 16, 12), tearMat);
+      tear.scale.set(0.07, 0.11, 0.05);
+      onSurface(tear, sx * 0.43, 0.08, 0.03);
+    }
+    g.rotation.z = 0.22;
+  } else if (type === 'wow') {
+    for (const sx of [-1, 1]) {
+      const h = redHeart(0.24);
+      onSurface(h, sx * 0.21, 0.12, 0.05);
+    }
+    openMouth(-0.14, 0.2);
+  } else {                                           // aww ☺️
+    arc(-0.2, 0.1, 0.075, 0.02, true);
+    arc(0.2, 0.1, 0.075, 0.02, true);
+    arc(0, -0.15, 0.14, 0.024, false);
+    blush(-0.3, -0.06, 0.11); blush(0.3, -0.06, 0.11);
+  }
+  return g;
+}
+
+const rx = { obj: null, glow: null, text: null };
+function buildReaction() {
+  const obj = W.react === 'love' ? buildItem('heart') : (() => {
+    const o = new THREE.Group();
+    o.add(emojiFace(W.react));
+    return o;
+  })();
+  obj.position.y = 1.35;
+  obj.scale.setScalar(0.0001);
+  hero.add(obj);
+  rx.obj = obj;
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW, color: REACT.glow, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+  glow.scale.setScalar(2.6);
+  glow.position.y = 1.35;
+  hero.add(glow);
+  rx.glow = glow;
+  rx.text = buildTitle(REACT.word, 2.6);
+}
+
+const RX_LYRICS = ['', '', W.reply ? `${W.from || 'Someone'} ${REACT.verb} ${REACT.emoji}` : `From ${W.from || 'someone special'} ${REACT.emoji}`, '', '', ''];
+
+async function playReaction() {
+  phase = 'react';
+  track('gift_open');
+  sfx.pop();
+  sfx.tada();
+  tween(0.9, (k) => {
+    rx.obj.scale.setScalar(Math.max(0.0001, easeOutBack(k)));
+    rx.glow.material.opacity = 0.5 * k;
+    warmLight.intensity = (W.react === 'love' ? 4 : 1.2) * k;
+  });
+  burstConfetti(150, new THREE.Vector3(0, 1.3, 0), 1.0);
+  await wait(500);
+  tween(1.1, (k) => rx.text.scale.setScalar(Math.max(0.0001, easeOutBack(k))));
+  floaters.visible = true;
+  showBalloons();
+  playSong(TY_SONG, RX_LYRICS, 0.3);
+  await wait(1500);
+  setHint({ text: `Tap the ${REACT.emoji} to make it bounce!` });
+  await wait(5000);
+  $('hint').hidden = true;
+  if (phase === 'react') showCard();
+}
+
+let bouncing = false;
+function bounceReaction() {
+  if (bouncing) return;
+  bouncing = true;
+  sfx.pop();
+  const p = new THREE.Vector3(0, 1.35, 0);
+  burstConfetti(45, p, 0.6);
+  tween(0.5, (k) => {
+    const sq = Math.sin(k * Math.PI);
+    rx.obj.scale.set(1 + sq * 0.18, 1 - sq * 0.14 + Math.sin(k * Math.PI * 2) * 0.05, 1 + sq * 0.18);
+  }).then(() => { rx.obj.scale.setScalar(1); bouncing = false; });
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1424,7 +1597,7 @@ function paintFrame(ctx, w, h) {
   ctx.drawImage(renderer.domElement, 0, 0, w, h);
   // Watermark pill — every shared photo/video points back to the creator.
   const s = w / 420;
-  const label = `${IS_TY ? '💖' : '🎂'} Made with inixr.com/wish`;
+  const label = `${IS_RX ? REACT.emoji : IS_TY ? '💖' : '🎂'} Made with inixr.com/wish`;
   ctx.font = `800 ${Math.round(15 * s)}px ${FONT}`;
   const tw = ctx.measureText(label).width;
   const ph = 34 * s, pw = tw + 30 * s, px = (w - pw) / 2, py = h - ph - 22 * s;
@@ -1474,9 +1647,9 @@ function capture() {
 async function shareShot() {
   if (!shot.blob) return;
   const ext = shot.kind === 'video' ? ($('shotSave').download.split('.').pop()) : 'jpg';
-  const file = new File([shot.blob], `${IS_TY ? 'thank-you' : 'birthday-surprise'}.${ext}`, { type: shot.blob.type });
-  const text = IS_TY
-    ? 'Look at this thank-you gift I got 💖 Make one: https://inixr.com/wish/create/'
+  const file = new File([shot.blob], `${IS_RX ? 'reaction' : IS_TY ? 'thank-you' : 'birthday-surprise'}.${ext}`, { type: shot.blob.type });
+  const text = HEARTY
+    ? `Look what I got ${IS_RX ? REACT.emoji : '💖'} Make one: https://inixr.com/wish/create/`
     : 'Look at my birthday surprise 🎂 Make one: https://inixr.com/wish/create/';
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
@@ -1657,7 +1830,9 @@ async function reveal() {
   });
   setTimeout(() => { sfx.thud(); burstConfetti(60, new THREE.Vector3(0, 0.2, 0), 0.7); }, 420);
   await wait(1200);
-  if (IS_TY) {
+  if (IS_RX) {
+    playReaction();
+  } else if (IS_TY) {
     phase = 'open';
     setHint({ text: 'Tap the gift to open it 🎁', main: '🎁 Open the gift', onMain: openGift });
   } else {
@@ -1709,16 +1884,12 @@ async function celebrate() {
 function showCard() {
   phase = 'done';
   $('cardTo').textContent = `Dear ${W.to},`;
-  $('cardMsg').textContent = W.msg || (IS_TY ? 'Thank you so much! 💖' : 'Happy Birthday! 🎂');
+  $('cardMsg').textContent = W.msg || (IS_RX ? `${REACT.word.charAt(0)}${REACT.word.slice(1).toLowerCase()} ${REACT.emoji}` : IS_TY ? 'Thank you so much! 💖' : 'Happy Birthday! 🎂');
   $('cardFrom').textContent = W.from ? `— with love, ${W.from}` : '';
+  $('reactLabel').textContent = W.from ? `React to ${W.from}:` : 'React:';
   const btn = $('primaryBtn');
   btn.className = 'big-btn pink';
-  if (IS_TY) {
-    btn.textContent = '💌 Send a thank-you to someone';
-    $('makeOwn').textContent = '🎂 Send someone a birthday wish';
-  } else {
-    btn.textContent = W.from ? `💌 Say thank you to ${W.from}` : '💌 Say thank you';
-  }
+  btn.textContent = W.from ? `💌 Send something back to ${W.from}` : '💌 Send a surprise to someone';
   $('card').classList.remove('min');
   $('card').hidden = false;
   arTip('Tap 📸 Photo or 🎥 Video to share it! ✨', 5000);
@@ -1728,7 +1899,13 @@ async function replay() {
   track('replay');
   $('card').hidden = true;
   stopSong();
-  if (IS_TY) {
+  if (IS_RX) {
+    rx.obj.scale.setScalar(0.0001);
+    rx.glow.material.opacity = 0;
+    rx.text.scale.setScalar(0.0001);
+    floaters.visible = false;
+    warmLight.intensity = 0;
+  } else if (IS_TY) {
     ty.opened = false;
     ty.heart.scale.setScalar(0.0001);
     ty.heart.position.y = 0.5;
@@ -1766,11 +1943,15 @@ function onTap(x, y) {
   if (phase === 'open') { openGift(); return; }
   pointer.set((x / innerWidth) * 2 - 1, -(y / innerHeight) * 2 + 1);
   raycaster.setFromCamera(pointer, camera);
+  if (IS_RX && rx.obj && rx.obj.scale.x > 0.5 && raycaster.intersectObject(rx.obj, true).length) {
+    bounceReaction();
+    return;
+  }
   const bodies = balloons.filter((b) => b.visible && !b.userData.popped).map((b) => b.userData.body);
   const hit = raycaster.intersectObjects(bodies, false)[0];
   if (hit) {
     popBalloon(hit.object.userData.balloon);
-    if (IS_TY) track('heart_pop');
+    if (HEARTY) track('heart_pop');
   }
 }
 
@@ -1810,21 +1991,62 @@ $('selfieBtn').addEventListener('click', () => {
 $('replayBtn').addEventListener('click', replay);
 $('cardToggle').addEventListener('click', () => $('card').classList.toggle('min'));
 
+// "Send something back": opens the creator with names swapped; the viewer picks what to send.
 $('primaryBtn').addEventListener('click', () => {
+  track('send_back');
   const p = new URLSearchParams();
-  p.set('k', 'ty');
+  p.set('k', IS_TY || IS_RX ? 'rx' : 'ty');
   p.set('f', W.to);                            // the viewer becomes the sender
-  if (!IS_TY) {
-    track('send_back');
-    if (W.from) p.set('t', W.from);            // birthday person thanks whoever wished them
-    if (W.id) p.set('r', W.id);
-  }
+  if (W.from) p.set('t', W.from);
+  if (W.id) p.set('r', W.id);
   location.href = `${CREATE_URL}#${p.toString()}`;
 });
-$('makeOwn').addEventListener('click', (e) => {
-  if (!IS_TY) return;
-  e.preventDefault();
-  location.href = `${CREATE_URL}#k=bday`;
+
+// ── One-tap reactions (sent straight to WhatsApp) ───────────────
+function newId() {
+  const a = new Uint8Array(8);
+  crypto.getRandomValues(a);
+  return Array.from(a, (x) => (x % 36).toString(36)).join('');
+}
+function b64url(str) {
+  let bin = '';
+  new TextEncoder().encode(str).forEach((b) => { bin += String.fromCharCode(b); });
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function beacon(payload) {
+  if (!EVT_URL || W.demo || W.preview) return;
+  try { navigator.sendBeacon(EVT_URL, new Blob([JSON.stringify(payload)], { type: 'text/plain' })); } catch { /* ignore */ }
+}
+
+let reactKey = 'love';
+function openReact(key) {
+  reactKey = key;
+  const R = REACTS[key];
+  $('reactBig').textContent = R.emoji;
+  $('reactTitle').textContent = W.from ? `Send ${R.emoji} to ${W.from}` : `Send ${R.emoji}`;
+  $('reactTo').hidden = !!W.from;
+  $('reactTo').value = W.from || '';
+  $('reactFrom').value = W.demo ? '' : W.to;
+  $('reactErr').textContent = '';
+  $('reactSheet').hidden = false;
+}
+$('reactRow').querySelectorAll('button[data-x]').forEach((b) => b.addEventListener('click', () => openReact(b.dataset.x)));
+$('reactClose').addEventListener('click', () => { $('reactSheet').hidden = true; });
+$('reactSend').addEventListener('click', () => {
+  const to = $('reactTo').value.trim().slice(0, 24);
+  const from = $('reactFrom').value.trim().slice(0, 24);
+  if (!to) { $('reactErr').textContent = 'Who are you reacting to? 🙂'; $('reactTo').focus(); return; }
+  if (!from) { $('reactErr').textContent = 'Add your name so they know it’s you 🙂'; $('reactFrom').focus(); return; }
+  const R = REACTS[reactKey];
+  const id = newId();
+  const data = { k: 'rx', t: to, f: from, m: $('reactMsg').value.trim().slice(0, 120), i: id, x: reactKey, y: 1 };
+  const url = `${location.origin}${REACT_URL}#d=${b64url(JSON.stringify(data))}`;
+  beacon({ e: 'react', k: W.kind, i: W.id, r: '' });
+  beacon({ e: 'link_created', k: 'rx', i: id, r: W.id });
+  const text = `${R.emoji} ${from} ${R.verb}! Tap to see it in 3D 👉 ${url}`;
+  const wa = `https://wa.me/?text=${encodeURIComponent(text)}`;
+  $('reactSheet').hidden = true;
+  if (!window.open(wa, '_blank')) location.href = wa;
 });
 
 $('shotShare').addEventListener('click', shareShot);
@@ -1873,6 +2095,14 @@ function frame() {
       glow += Math.max(0, k) * flick;
     }
     warmLight.intensity = glow * 0.9 * (1 - micLevel * 0.4);
+  } else if (IS_RX) {
+    if (rx.obj && rx.obj.scale.x > 0.5) {
+      rx.obj.rotation.y = Math.sin(t * 0.9) * 0.4;
+      rx.obj.position.y = 1.35 + Math.sin(t * 1.6) * 0.06;
+      if (W.react === 'love' && !bouncing) rx.obj.scale.setScalar(1 + Math.max(0, Math.sin(t * 5.2)) * 0.05);
+      rx.glow.position.y = rx.obj.position.y;
+      rx.text.position.y = 2.6 + Math.sin(t * 1.2) * 0.04;
+    }
   } else if (ty.opened) {
     ty.heart.rotation.y = Math.sin(t * 0.9) * 0.5;
     if (W.item === 'heart' && ty.heart.scale.x > 0.9) ty.heart.scale.setScalar(1 + Math.max(0, Math.sin(t * 5.2)) * 0.05);
@@ -1901,7 +2131,7 @@ function frame() {
       u.home.z + Math.cos(t * 0.5 + u.seed) * 0.08,
     );
     b.rotation.z = Math.sin(t * 0.7 + u.seed) * 0.12;
-    if (IS_TY) b.rotation.y = Math.sin(t * 0.8 + u.seed) * 0.6;
+    if (HEARTY) b.rotation.y = Math.sin(t * 0.8 + u.seed) * 0.6;
   }
 
   if (floaters && floaters.visible) {
@@ -1970,7 +2200,15 @@ function frame() {
 
 // ── Boot ────────────────────────────────────────────────────────
 (async function boot() {
-  if (IS_TY) {
+  if (IS_RX) {
+    $('introEmoji').textContent = REACT.emoji;
+    $('introTitle').textContent = W.demo
+      ? 'Preview: this is what they will see 💞'
+      : W.reply
+        ? `Hey ${W.to}! ${W.from || 'Someone'} reacted to your surprise ${REACT.emoji}`
+        : `Hey ${W.to}! ${W.from || 'Someone'} sent you something special ${REACT.emoji}`;
+    $('openBtn').textContent = 'Open it ✨';
+  } else if (IS_TY) {
     $('introEmoji').textContent = '💌';
     $('introTitle').textContent = W.demo
       ? 'Preview: this is what they will see 💖'
@@ -1987,7 +2225,7 @@ function frame() {
   try {
     await Promise.race([document.fonts.load(`800 100px ${FONT}`), wait(2500)]);
   } catch { /* fall back to system font */ }
-  if (IS_TY) { buildGift(); buildFloaters(); } else { buildCake(); }
+  if (IS_RX) { buildReaction(); buildFloaters(); } else if (IS_TY) { buildGift(); buildFloaters(); } else { buildCake(); }
   buildBalloons();
   requestAnimationFrame(frame);
 })();
