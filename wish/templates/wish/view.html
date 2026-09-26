@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+Thambi+2:wght@500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'wish/wish.css' %}?v=4">
+  <link rel="stylesheet" href="{% static 'wish/wish.css' %}?v=5">
   <script type="importmap">
   {
     "imports": {
@@ -43,6 +43,7 @@
     <button class="tool" data-mode="3d" aria-label="3D view"><span>🧊</span>3D</button>
     <button class="tool" id="recenter" aria-label="Re-center" hidden><span>🎯</span>Center</button>
     <button class="tool snap" id="snapBtn" aria-label="Take photo"><span>📸</span>Photo</button>
+    <button class="tool rec" id="recBtn" aria-label="Record video"><span>🎥</span><b id="recLabel">Video</b></button>
   </nav>
   <p id="arTip" class="ar-tip" hidden></p>
 
@@ -85,6 +86,7 @@
   <!-- 4. Photo preview -->
   <section id="shot" class="shot" hidden>
     <img id="shotImg" alt="Your photo">
+    <video id="shotVid" playsinline controls loop hidden></video>
     <div class="shot-actions">
       <button id="shotShare" class="big-btn wa">Share on WhatsApp</button>
       <div class="card-row">
@@ -96,6 +98,6 @@
 
   <div id="toast" class="toast"></div>
   <noscript><p class="noscript">Please enable JavaScript to open your gift.</p></noscript>
-  <script type="module" src="{% static 'wish/wish.js' %}?v=4"></script>
+  <script type="module" src="{% static 'wish/wish.js' %}?v=5"></script>
 </body>
 </html>

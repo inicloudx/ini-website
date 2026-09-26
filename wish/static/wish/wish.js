@@ -14,6 +14,25 @@ const FONT = '"Baloo Thambi 2", system-ui, sans-serif';
 const TEXT_FONT_URL = 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/fonts/helvetiker_bold.typeface.json';
 
 // ── Wish data ───────────────────────────────────────────────────
+// "Thank you for…" — the 3D treat that rises out of the gift.
+const ITEM_INFO = {
+  heart: { label: '', emoji: '💖' },
+  meals: { label: 'the delicious food', emoji: '🍛' },
+  biryani: { label: 'the biryani', emoji: '😋' },
+  dosa: { label: 'the crispy dosa', emoji: '😋' },
+  chicken: { label: 'the chicken treat', emoji: '🍗' },
+  juice: { label: 'the juice', emoji: '🧃' },
+  icecream: { label: 'the ice cream', emoji: '🍦' },
+  coffee: { label: 'the coffee', emoji: '☕' },
+  pizza: { label: 'the pizza', emoji: '🍕' },
+  chocolate: { label: 'the chocolate', emoji: '🍫' },
+};
+const RELS = {
+  friend: 'my friend', bestie: 'my bestie', love: 'my love', husband: 'my husband', wife: 'my wife',
+  brother: 'my brother', sister: 'my sister', amma: 'Amma', appa: 'Appa', teacher: 'my teacher',
+  colleague: 'my colleague', kind: 'a kind soul',
+};
+
 const clean = (v, n) => String(v ?? '').replace(/[\u0000-\u0009\u000b-\u001f]/g, ' ').trim().slice(0, n);
 
 function b64urlDecode(s) {
@@ -35,6 +54,8 @@ function readWish() {
       msg: clean(o.m, 220),
       id: /^[a-z0-9]{1,12}$/.test(o.i || '') ? o.i : '',
       preview: hp.get('p') === '1',
+      item: ITEM_INFO[o.o] ? o.o : 'heart',
+      rel: RELS[o.l] ? o.l : '',
     };
     return w.to ? w : null;
   } catch {
@@ -43,9 +64,10 @@ function readWish() {
 }
 
 const W = readWish() || (PAGE_KIND === 'ty'
-  ? { kind: 'ty', to: 'Friend', from: 'iNiXR', id: '', demo: true, msg: 'Thank you for being amazing! 💖' }
-  : { kind: 'bday', to: 'Friend', from: 'iNiXR', id: '', demo: true, msg: 'Wishing you a year full of smiles, surprises and magic! 🎉' });
+  ? { kind: 'ty', to: 'Friend', from: 'iNiXR', id: '', demo: true, item: 'heart', rel: '', msg: 'Thank you for being amazing! 💖' }
+  : { kind: 'bday', to: 'Friend', from: 'iNiXR', id: '', demo: true, item: 'heart', rel: '', msg: 'Wishing you a year full of smiles, surprises and magic! 🎉' });
 const IS_TY = W.kind === 'ty';
+const ITEM = ITEM_INFO[W.item];
 
 function track(e) {
   if (W.demo || W.preview || !EVT_URL) return;
@@ -551,7 +573,7 @@ const TY_SONG = [
   [['G4', 0.5, 'G2'], ['B4', 0.5], ['D5', 0.5], ['G5', 0.5]],
   [['E5', 0.5, 'C3'], ['G5', 0.5], ['C6', 2]],
 ];
-const TY_LYRICS = ['', '', `Thank you, ${W.to} 💖`, '', '', ''];
+const TY_LYRICS = ['', '', `Thank you, ${W.to} 💖`, '', ITEM.label ? `for ${ITEM.label} ${ITEM.emoji}` : '', ''];
 
 let songTimers = [];
 
@@ -757,6 +779,305 @@ function extinguish(f) {
 // ═══════════════════════════════════════════════════════════════
 //  THANK-YOU GIFT
 // ═══════════════════════════════════════════════════════════════
+// ── 3D treats for "Thank you for…" ─────────────────────────────
+const steamPuffs = [];
+function addSteam(parent, x, y, z, n = 3) {
+  for (let i = 0; i < n; i++) {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW, color: 0xffffff, transparent: true, opacity: 0, depthWrite: false }));
+    s.userData = { x, y, z, phase: i / n, speed: rand(0.35, 0.5), seed: rand(0, 6) };
+    parent.add(s);
+    steamPuffs.push(s);
+  }
+}
+
+function patternTexture(size, draw) {
+  const [c, ctx] = canvas(size, size);
+  draw(ctx, size);
+  const t = toTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return t;
+}
+const riceTexture = (base, grains) => patternTexture(256, (ctx, n) => {
+  ctx.fillStyle = base;
+  ctx.fillRect(0, 0, n, n);
+  for (let i = 0; i < 700; i++) {
+    ctx.fillStyle = grains[i % grains.length];
+    ctx.save();
+    ctx.translate(rand(0, n), rand(0, n));
+    ctx.rotate(rand(0, Math.PI));
+    ctx.fillRect(-5, -1.6, 10, 3.2);
+    ctx.restore();
+  }
+});
+const stripes = (a, b) => patternTexture(64, (ctx, n) => {
+  ctx.fillStyle = a;
+  ctx.fillRect(0, 0, n, n);
+  ctx.fillStyle = b;
+  for (let y = 0; y < n; y += 16) ctx.fillRect(0, y, n, 8);
+});
+
+function physical(color, extra = {}) {
+  return new THREE.MeshPhysicalMaterial({ color, roughness: 0.4, clearcoat: 0.5, clearcoatRoughness: 0.3, ...extra });
+}
+function mesh(geo, mat, x = 0, y = 0, z = 0) {
+  const m = shadowed(new THREE.Mesh(geo, mat));
+  m.position.set(x, y, z);
+  return m;
+}
+function steelMat() { return std(0xd8dde3, 0.22, { metalness: 0.9 }); }
+
+function drumstick() {
+  const g = new THREE.Group();
+  const meat = mesh(new THREE.SphereGeometry(1, 28, 20), physical(0x9c4a1a, { roughness: 0.45, clearcoat: 0.7 }));
+  meat.scale.set(0.26, 0.36, 0.24);
+  g.add(meat);
+  const spice = std(0x5a1e05, 0.8);
+  for (let i = 0; i < 16; i++) {
+    const v = new THREE.Vector3(rand(-1, 1), rand(-0.6, 1), rand(-1, 1)).normalize();
+    g.add(mesh(new THREE.SphereGeometry(0.018, 6, 5), spice, v.x * 0.26, v.y * 0.36, v.z * 0.24));
+  }
+  const boneMat = std(0xfff6e6, 0.5);
+  g.add(mesh(new THREE.CylinderGeometry(0.04, 0.045, 0.3, 12), boneMat, 0, -0.42, 0));
+  g.add(mesh(new THREE.SphereGeometry(0.055, 12, 10), boneMat, -0.035, -0.58, 0));
+  g.add(mesh(new THREE.SphereGeometry(0.055, 12, 10), boneMat, 0.035, -0.58, 0));
+  return g;
+}
+
+const TREATS = {
+  heart() {
+    const g = new THREE.Group();
+    g.add(mesh(heartGeometry(1.0, 0.36), new THREE.MeshPhysicalMaterial({ color: 0xff2d6f, roughness: 0.2, clearcoat: 1, clearcoatRoughness: 0.1, emissive: 0x5a0020, emissiveIntensity: 0.6 })));
+    return g;
+  },
+  juice() {
+    const g = new THREE.Group();
+    const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.05, transparent: true, opacity: 0.28, clearcoat: 1, side: THREE.DoubleSide, depthWrite: false });
+    g.add(mesh(new THREE.CylinderGeometry(0.27, 0.21, 0.75, 36, 1, true), glassMat));
+    g.add(mesh(new THREE.CylinderGeometry(0.21, 0.21, 0.04, 36), glassMat, 0, -0.375, 0));
+    g.add(mesh(new THREE.CylinderGeometry(0.255, 0.205, 0.58, 36), std(0xff9f1c, 0.25, { emissive: 0x7a3000, emissiveIntensity: 0.35 }), 0, -0.07, 0));
+    const ice = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.1, transparent: true, opacity: 0.55 });
+    g.add(mesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), ice, -0.07, 0.2, 0.05));
+    g.add(mesh(new THREE.BoxGeometry(0.09, 0.09, 0.09), ice, 0.06, 0.19, -0.06));
+    const straw = mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.8, 10), std(0xffffff, 0.4, { map: stripes('#ffffff', '#ff3b5c') }), 0.08, 0.28, 0);
+    straw.rotation.z = -0.28;
+    g.add(straw);
+    const slice = mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.035, 28), std(0xffa630, 0.4), -0.27, 0.38, 0.03);
+    slice.rotation.x = Math.PI / 2;
+    g.add(slice);
+    const pulp = mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.04, 28), std(0xffd27a, 0.5), -0.27, 0.38, 0.035);
+    pulp.rotation.x = Math.PI / 2;
+    g.add(pulp);
+    return g;
+  },
+  icecream() {
+    const g = new THREE.Group();
+    const waffle = patternTexture(128, (ctx, n) => {
+      ctx.fillStyle = '#d9a066';
+      ctx.fillRect(0, 0, n, n);
+      ctx.strokeStyle = '#a8703a';
+      ctx.lineWidth = 5;
+      for (let i = -n; i < n * 2; i += 26) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + n, n); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(i, n); ctx.lineTo(i + n, 0); ctx.stroke();
+      }
+    });
+    waffle.repeat.set(3, 2);
+    const cone = mesh(new THREE.ConeGeometry(0.22, 0.62, 28), std(0xffffff, 0.7, { map: waffle }), 0, -0.2, 0);
+    cone.rotation.x = Math.PI;
+    g.add(cone);
+    g.add(mesh(new THREE.SphereGeometry(0.23, 28, 20), physical(0xff8fb8), 0, 0.17, 0));
+    g.add(mesh(new THREE.SphereGeometry(0.2, 28, 20), physical(0x9ee6c4), 0.02, 0.43, 0));
+    g.add(mesh(new THREE.SphereGeometry(0.17, 28, 20), physical(0x6b3a1f), -0.01, 0.65, 0));
+    g.add(mesh(new THREE.SphereGeometry(0.06, 16, 12), physical(0xd0021b, { clearcoat: 1 }), 0, 0.84, 0));
+    const sprinkle = new THREE.CapsuleGeometry(0.01, 0.035, 2, 5);
+    const cols = [0xffd23f, 0x3ec1d3, 0xffffff, 0x9b5de5];
+    for (let i = 0; i < 18; i++) {
+      const a = rand(0, Math.PI * 2), y = rand(0.3, 0.55);
+      const sp = mesh(sprinkle, std(cols[i % 4], 0.4), Math.cos(a) * 0.19, y, Math.sin(a) * 0.19);
+      sp.rotation.set(rand(0, 3), rand(0, 3), rand(0, 3));
+      g.add(sp);
+    }
+    return g;
+  },
+  chicken() {
+    const g = new THREE.Group();
+    const a = drumstick();
+    a.position.set(-0.14, 0, 0);
+    a.rotation.z = 0.45;
+    const b = drumstick();
+    b.position.set(0.14, 0.02, -0.05);
+    b.rotation.z = -0.45;
+    g.add(a, b);
+    const leaf = std(0x3fae49, 0.5);
+    g.add(mesh(new THREE.SphereGeometry(0.05, 10, 8), leaf, 0, 0.28, 0.2));
+    g.add(mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.03, 20), std(0xfff27a, 0.4), 0.25, -0.3, 0.2));
+    return g;
+  },
+  coffee() {
+    const g = new THREE.Group();
+    const cup = physical(0xffffff, { roughness: 0.2 });
+    g.add(mesh(new THREE.CylinderGeometry(0.27, 0.2, 0.45, 36), cup));
+    const art = patternTexture(256, (ctx, n) => {
+      ctx.fillStyle = '#6b3f1d';
+      ctx.fillRect(0, 0, n, n);
+      ctx.fillStyle = '#f3e1c7';
+      ctx.beginPath();
+      ctx.moveTo(128, 190);
+      ctx.bezierCurveTo(40, 130, 60, 60, 128, 100);
+      ctx.bezierCurveTo(196, 60, 216, 130, 128, 190);
+      ctx.fill();
+    });
+    const top = mesh(new THREE.CircleGeometry(0.255, 36), std(0xffffff, 0.3, { map: art }), 0, 0.2, 0);
+    top.rotation.x = -Math.PI / 2;
+    g.add(top);
+    const handle = mesh(new THREE.TorusGeometry(0.1, 0.03, 10, 20, Math.PI), cup, 0.25, 0.02, 0);
+    handle.rotation.z = -Math.PI / 2;
+    g.add(handle);
+    g.add(mesh(new THREE.CylinderGeometry(0.42, 0.36, 0.04, 36), cup, 0, -0.245, 0));
+    addSteam(g, 0, 0.3, 0, 4);
+    g.rotation.x = 0.25;
+    return g;
+  },
+  pizza() {
+    const g = new THREE.Group();
+    const shape = new THREE.Shape();
+    shape.moveTo(0, -0.5);
+    shape.lineTo(-0.4, 0.38);
+    shape.quadraticCurveTo(0, 0.52, 0.4, 0.38);
+    shape.closePath();
+    const slice = mesh(new THREE.ExtrudeGeometry(shape, { depth: 0.06, bevelEnabled: true, bevelThickness: 0.015, bevelSize: 0.015, bevelSegments: 2 }), physical(0xffc93c, { roughness: 0.5, clearcoat: 0.3 }));
+    g.add(slice);
+    const crust = mesh(new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(new THREE.Vector3(-0.42, 0.38, 0.03), new THREE.Vector3(0, 0.54, 0.03), new THREE.Vector3(0.42, 0.38, 0.03)), 20, 0.065, 10), std(0xc9832f, 0.6));
+    g.add(crust);
+    const pep = std(0xc0392b, 0.45);
+    for (const [x, y] of [[-0.12, 0.2], [0.14, 0.24], [0.02, -0.02], [-0.05, 0.36], [0.05, -0.22]]) {
+      const p = mesh(new THREE.CylinderGeometry(0.065, 0.065, 0.02, 20), pep, x, y, 0.085);
+      p.rotation.x = Math.PI / 2;
+      g.add(p);
+    }
+    const olive = std(0x2c2c2c, 0.4);
+    for (const [x, y] of [[0.16, 0.05], [-0.18, 0.05]]) g.add(mesh(new THREE.TorusGeometry(0.025, 0.012, 8, 14), olive, x, y, 0.085));
+    g.rotation.x = -0.2;
+    return g;
+  },
+  chocolate() {
+    const g = new THREE.Group();
+    const choc = physical(0x4a2511, { roughness: 0.3 });
+    g.add(mesh(new THREE.BoxGeometry(0.52, 0.82, 0.07), choc));
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 2; c++) g.add(mesh(new THREE.BoxGeometry(0.21, 0.17, 0.035), choc, -0.12 + c * 0.24, 0.3 - r * 0.2, 0.05));
+    }
+    g.add(mesh(new THREE.BoxGeometry(0.56, 0.36, 0.11), physical(0xc0392b, { roughness: 0.25, clearcoat: 0.8 }), 0, -0.26, 0));
+    g.add(mesh(new THREE.BoxGeometry(0.565, 0.05, 0.115), std(0xe8b64c, 0.3, { metalness: 0.8 }), 0, -0.12, 0));
+    g.rotation.z = 0.18;
+    return g;
+  },
+  meals() {
+    const g = new THREE.Group();
+    const leafShape = new THREE.Shape();
+    const lw = 0.68, lh = 0.42, lr = 0.2;
+    leafShape.moveTo(-lw + lr, -lh);
+    leafShape.lineTo(lw - lr, -lh);
+    leafShape.quadraticCurveTo(lw, -lh, lw, -lh + lr);
+    leafShape.lineTo(lw, lh - lr);
+    leafShape.quadraticCurveTo(lw, lh, lw - lr, lh);
+    leafShape.lineTo(-lw + lr, lh);
+    leafShape.quadraticCurveTo(-lw, lh, -lw, lh - lr);
+    leafShape.lineTo(-lw, -lh + lr);
+    leafShape.quadraticCurveTo(-lw, -lh, -lw + lr, -lh);
+    const leafGeo = new THREE.ShapeGeometry(leafShape, 8);
+    leafGeo.rotateX(-Math.PI / 2);
+    g.add(mesh(leafGeo, new THREE.MeshStandardMaterial({ color: 0x2e9e3e, roughness: 0.45, side: THREE.DoubleSide })));
+    g.add(mesh(new THREE.BoxGeometry(1.3, 0.008, 0.025), std(0x9ad49a, 0.5), 0, 0.004, 0));
+    const rice = mesh(new THREE.SphereGeometry(0.24, 28, 18), std(0xffffff, 0.8, { map: riceTexture('#f7f3ea', ['#ffffff', '#ece6d8']) }), 0.08, 0.04, 0.08);
+    rice.scale.set(1, 0.5, 1);
+    g.add(rice);
+    const sambar = mesh(new THREE.SphereGeometry(0.13, 20, 12), std(0xc76a1c, 0.3, { emissive: 0x3a1500, emissiveIntensity: 0.3 }), 0.08, 0.14, 0.08);
+    sambar.scale.set(1, 0.22, 1);
+    g.add(sambar);
+    const curries = [0x6abf3a, 0xf4a300, 0xb5361c, 0xfff3e0, 0x8e5a2b];
+    curries.forEach((col, i) => {
+      const d = mesh(new THREE.SphereGeometry(0.07, 16, 10), std(col, 0.5), -0.5 + i * 0.22, 0.03, -0.25);
+      d.scale.set(1, 0.5, 1);
+      g.add(d);
+    });
+    const appalam = mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.012, 28), std(0xf3dc97, 0.6), -0.4, 0.05, 0.14);
+    appalam.rotation.z = 0.15;
+    g.add(appalam);
+    g.add(mesh(new THREE.CylinderGeometry(0.08, 0.07, 0.1, 20), steelMat(), 0.5, 0.05, 0.05));
+    g.add(mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.01, 20), std(0xe9c98f, 0.4), 0.5, 0.098, 0.05));
+    addSteam(g, 0.08, 0.16, 0.08, 4);
+    g.rotation.x = 0.9;
+    return g;
+  },
+  biryani() {
+    const g = new THREE.Group();
+    const profile = [[0.001, -0.35], [0.26, -0.35], [0.37, -0.22], [0.4, -0.02], [0.35, 0.14], [0.3, 0.2], [0.34, 0.24], [0.34, 0.27], [0.3, 0.27]]
+      .map(([x, y]) => new THREE.Vector2(x, y));
+    g.add(mesh(new THREE.LatheGeometry(profile, 40), std(0xb87333, 0.28, { metalness: 0.85, side: THREE.DoubleSide })));
+    const mound = mesh(new THREE.SphereGeometry(0.31, 28, 16, 0, Math.PI * 2, 0, Math.PI / 2), std(0xffffff, 0.8, { map: riceTexture('#f1c27d', ['#fff4dc', '#ff9a1f', '#f7d9a0', '#ffffff']) }), 0, 0.22, 0);
+    mound.scale.set(1, 0.55, 1);
+    g.add(mound);
+    const leg = drumstick();
+    leg.scale.setScalar(0.42);
+    leg.position.set(0.05, 0.36, 0.02);
+    leg.rotation.set(0.3, 0, -1.1);
+    g.add(leg);
+    const mint = std(0x2f9e44, 0.5);
+    for (const [x, z] of [[-0.12, 0.1], [-0.05, -0.12], [0.15, -0.06]]) {
+      const m = mesh(new THREE.SphereGeometry(0.035, 10, 8), mint, x, 0.37, z);
+      m.scale.set(1.4, 0.4, 0.8);
+      g.add(m);
+    }
+    g.add(mesh(new THREE.SphereGeometry(0.06, 16, 12), std(0xffffff, 0.4), -0.16, 0.34, 0.12));
+    g.add(mesh(new THREE.SphereGeometry(0.03, 12, 10), std(0xffc01e, 0.4), -0.16, 0.37, 0.15));
+    addSteam(g, 0, 0.42, 0, 4);
+    g.rotation.x = 0.35;
+    return g;
+  },
+  dosa() {
+    const g = new THREE.Group();
+    const steel = steelMat();
+    g.add(mesh(new THREE.CylinderGeometry(0.56, 0.52, 0.03, 48), steel));
+    const rim = mesh(new THREE.TorusGeometry(0.56, 0.02, 8, 48), steel, 0, 0.015, 0);
+    rim.rotation.x = Math.PI / 2;
+    g.add(rim);
+    const roll = mesh(new THREE.CylinderGeometry(0.1, 0.13, 1.25, 28), physical(0xd9922e, { roughness: 0.55, clearcoat: 0.3, map: riceTexture('#d9922e', ['#b8691c', '#e8b04f', '#c97a22']) }), 0, 0.14, -0.08);
+    roll.rotation.z = Math.PI / 2;
+    roll.rotation.y = 0.15;
+    g.add(roll);
+    const fills = [0xf5f0e1, 0xc0392b, 0xc56a1a];
+    fills.forEach((col, i) => {
+      const x = -0.28 + i * 0.28;
+      g.add(mesh(new THREE.CylinderGeometry(0.11, 0.09, 0.08, 24), steel, x, 0.06, 0.27));
+      g.add(mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.01, 24), std(col, 0.5), x, 0.1, 0.27));
+    });
+    addSteam(g, 0, 0.26, -0.08, 3);
+    g.rotation.x = 0.7;
+    return g;
+  },
+};
+
+// Builds the chosen treat, normalised to ~1 unit, centred on the origin.
+function buildItem(key) {
+  const model = (TREATS[key] || TREATS.heart)();
+  const puffs = [];
+  model.traverse((o) => { if (o.isSprite) puffs.push(o); });
+  puffs.forEach((o) => o.parent.remove(o));          // keep steam out of the size measurement
+  model.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(model);
+  const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+  const inner = new THREE.Group();
+  inner.add(model);
+  model.position.sub(center);
+  inner.scale.setScalar(1.2 / Math.max(size.x, size.y, size.z));
+  puffs.forEach((o) => model.add(o));
+  const outer = new THREE.Group();
+  outer.add(inner);
+  return outer;
+}
+
 const ty = { lid: null, heart: null, heartGlow: null, text: null, opened: false };
 
 function tagTexture() {
@@ -770,8 +1091,9 @@ function tagTexture() {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#e64a8b';
-  ctx.font = `700 92px ${FONT}`;
-  ctx.fillText('For', 512, 170);
+  const line1 = W.rel ? `For ${RELS[W.rel]}` : 'For';
+  fitFont(ctx, line1, 700, 92, 860);
+  ctx.fillText(line1, 512, 170);
   fitFont(ctx, W.to, 800, 170, 860);
   ctx.fillStyle = '#5b1a8a';
   ctx.fillText(W.to, 512, 330);
@@ -818,14 +1140,11 @@ function buildGift() {
   hero.add(lid);
   ty.lid = lid;
 
-  // Heart that rises out of the box
-  const heart = new THREE.Mesh(
-    heartGeometry(1.0, 0.36),
-    new THREE.MeshPhysicalMaterial({ color: 0xff2d6f, roughness: 0.2, clearcoat: 1, clearcoatRoughness: 0.1, emissive: 0x5a0020, emissiveIntensity: 0.6 }),
-  );
+  // The heart (or chosen treat) that rises out of the box
+  const heart = buildItem(W.item);
   heart.position.y = 0.5;
   heart.scale.setScalar(0.0001);
-  hero.add(shadowed(heart));
+  hero.add(heart);
   ty.heart = heart;
   const hg = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW, color: 0xff5c9d, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
   hg.scale.setScalar(2.4);
@@ -834,17 +1153,46 @@ function buildGift() {
 
   // "THANK YOU" in 3D (falls back to a flat sign if the font can't load)
   const textGroup = new THREE.Group();
-  textGroup.position.set(0, 2.45, 0);
+  textGroup.position.set(0, 2.65, 0);
   textGroup.scale.setScalar(0.0001);
   hero.add(textGroup);
   ty.text = textGroup;
   const goldMat = new THREE.MeshPhysicalMaterial({ color: 0xffd36b, metalness: 0.85, roughness: 0.22, clearcoat: 0.6, emissive: 0x4a2a00, emissiveIntensity: 0.4 });
-  new FontLoader().loadAsync(TEXT_FONT_URL).then((font) => {
-    const g = new TextGeometry('THANK YOU', { font, size: 0.25, depth: 0.08, curveSegments: 6, bevelEnabled: true, bevelThickness: 0.018, bevelSize: 0.012, bevelSegments: 3 });
+  const text3d = (font, str, size, y, maxW) => {
+    const g = new TextGeometry(str, { font, size, depth: size * 0.32, curveSegments: 6, bevelEnabled: true, bevelThickness: size * 0.07, bevelSize: size * 0.05, bevelSegments: 3 });
     g.center();
-    textGroup.add(shadowed(new THREE.Mesh(g, goldMat)));
+    g.computeBoundingBox();
+    const m = shadowed(new THREE.Mesh(g, goldMat));
+    const w = g.boundingBox.max.x - g.boundingBox.min.x;
+    if (w > maxW) m.scale.setScalar(maxW / w);
+    m.position.y = y;
+    textGroup.add(m);
+  };
+  // The 3D font only has Latin letters — other scripts (e.g. Tamil) get a glowing name sign.
+  const latinName = /^[A-Za-z0-9 .,'&!-]+$/.test(W.to);
+  const nameSign = () => {
+    const [c, ctx] = canvas(1024, 256);
+    fitFont(ctx, W.to, 800, 190, 980);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineWidth = 16;
+    ctx.strokeStyle = '#6b1d3f';
+    ctx.strokeText(W.to, 512, 140);
+    const gr = ctx.createLinearGradient(0, 40, 0, 230);
+    gr.addColorStop(0, '#fff3c4');
+    gr.addColorStop(1, '#ffb83b');
+    ctx.fillStyle = gr;
+    ctx.fillText(W.to, 512, 140);
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 0.45), new THREE.MeshBasicMaterial({ map: toTexture(c), transparent: true, depthWrite: false }));
+    m.position.y = -0.2;
+    textGroup.add(m);
+  };
+  new FontLoader().loadAsync(TEXT_FONT_URL).then((font) => {
+    text3d(font, 'THANK YOU', 0.25, 0.2, 2.0);
+    if (latinName) text3d(font, W.to, 0.22, -0.18, 1.9);
+    else nameSign();
   }).catch(() => {
-    const tex = plaqueTexture('💖', 'THANK YOU', { bg2: '#ffe1ee', line1: '#e64a8b', line2: '#c2185b' });
+    const tex = plaqueTexture('THANK YOU', W.to, { bg2: '#ffe1ee', line1: '#e64a8b', line2: '#c2185b' });
     textGroup.add(new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.75), new THREE.MeshStandardMaterial({ map: tex })));
   });
 }
@@ -1062,15 +1410,9 @@ function recenter() {
   placeAR();
 }
 
-// ── Photo capture & share ───────────────────────────────────────
-let shotBlob = null, shotUrl = '';
-
-function capture() {
-  track('photo');
-  renderer.render(scene, camera);
-  const src = renderer.domElement;
-  const w = src.width, h = src.height;
-  const [c, ctx] = canvas(w, h);
+// ── Photo & video capture ───────────────────────────────────────
+// Composites the 3D canvas (which already contains the camera feed) + watermark.
+function paintFrame(ctx, w, h) {
   if (mode === '3d') {
     const g = ctx.createRadialGradient(w / 2, h * 0.2, 0, w / 2, h * 0.2, h);
     g.addColorStop(0, '#7a1f5c');
@@ -1079,9 +1421,8 @@ function capture() {
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
   }
-  ctx.drawImage(src, 0, 0);
-
-  // Watermark pill — every shared photo points back to the creator.
+  ctx.drawImage(renderer.domElement, 0, 0, w, h);
+  // Watermark pill — every shared photo/video points back to the creator.
   const s = w / 420;
   const label = `${IS_TY ? '💖' : '🎂'} Made with inixr.com/wish`;
   ctx.font = `800 ${Math.round(15 * s)}px ${FONT}`;
@@ -1094,38 +1435,123 @@ function capture() {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(label, w / 2, py + ph / 2 + 1 * s);
+}
 
+let shot = { blob: null, url: '', kind: 'photo' };
+
+function showShot(blob, kind) {
+  if (shot.url) URL.revokeObjectURL(shot.url);
+  shot = { blob, url: URL.createObjectURL(blob), kind };
+  const isVid = kind === 'video';
+  $('shotImg').hidden = isVid;
+  $('shotVid').hidden = !isVid;
+  if (isVid) {
+    $('shotVid').src = shot.url;
+    $('shotVid').play().catch(() => {});
+  } else {
+    $('shotImg').src = shot.url;
+  }
+  const ext = blob.type.includes('mp4') ? 'mp4' : blob.type.includes('webm') ? 'webm' : 'jpg';
+  $('shotSave').href = shot.url;
+  $('shotSave').download = `inixr-wish.${ext}`;
+  $('shot').hidden = false;
+}
+
+function capture() {
+  if (rec) return;
+  track('photo');
+  renderer.render(scene, camera);
+  const w = renderer.domElement.width, h = renderer.domElement.height;
+  const [c, ctx] = canvas(w, h);
+  paintFrame(ctx, w, h);
   sfx.shutter();
   const fl = $('flash');
   fl.classList.add('on');
   requestAnimationFrame(() => requestAnimationFrame(() => fl.classList.remove('on')));
-
-  c.toBlob((blob) => {
-    if (!blob) return;
-    shotBlob = blob;
-    if (shotUrl) URL.revokeObjectURL(shotUrl);
-    shotUrl = URL.createObjectURL(blob);
-    $('shotImg').src = shotUrl;
-    $('shotSave').href = shotUrl;
-    $('shot').hidden = false;
-  }, 'image/jpeg', 0.9);
+  c.toBlob((blob) => { if (blob) showShot(blob, 'photo'); }, 'image/jpeg', 0.9);
 }
 
-async function sharePhoto() {
-  if (!shotBlob) return;
-  const file = new File([shotBlob], IS_TY ? 'thank-you.jpg' : 'birthday-surprise.jpg', { type: 'image/jpeg' });
+async function shareShot() {
+  if (!shot.blob) return;
+  const ext = shot.kind === 'video' ? ($('shotSave').download.split('.').pop()) : 'jpg';
+  const file = new File([shot.blob], `${IS_TY ? 'thank-you' : 'birthday-surprise'}.${ext}`, { type: shot.blob.type });
   const text = IS_TY
     ? 'Look at this thank-you gift I got 💖 Make one: https://inixr.com/wish/create/'
     : 'Look at my birthday surprise 🎂 Make one: https://inixr.com/wish/create/';
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
       await navigator.share({ files: [file], text });
-      track('photo_share');
+      track(shot.kind === 'video' ? 'video_share' : 'photo_share');
     } catch { /* user cancelled */ }
   } else {
     $('shotSave').click();
-    toast('Photo saved — share it from your gallery 📲');
+    toast('Saved — share it from your gallery 📲');
   }
+}
+
+// Video: records the composited canvas + the gift's music (up to REC_MAX seconds).
+const REC_MAX = 15;
+let rec = null;
+
+function pickMime() {
+  if (!window.MediaRecorder) return null;
+  const list = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1,opus', 'video/mp4',
+    'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
+  return list.find((m) => MediaRecorder.isTypeSupported(m)) || '';
+}
+
+function startRec() {
+  const mime = pickMime();
+  const src = renderer.domElement;
+  if (mime === null || !src.captureStream) { toast('Video recording isn’t supported on this browser'); return; }
+  const k = Math.min(1, 720 / src.width);
+  const w = Math.round((src.width * k) / 2) * 2, h = Math.round((src.height * k) / 2) * 2;
+  const [c, ctx] = canvas(w, h);
+  paintFrame(ctx, w, h);
+  const stream = c.captureStream(30);
+  let dest = null;
+  if (actx) {
+    dest = actx.createMediaStreamDestination();
+    master.connect(dest);
+    dest.stream.getAudioTracks().forEach((tr) => stream.addTrack(tr));
+  }
+  let mr;
+  try {
+    mr = new MediaRecorder(stream, mime ? { mimeType: mime, videoBitsPerSecond: 5_000_000 } : undefined);
+  } catch {
+    toast('Couldn’t start recording');
+    return;
+  }
+  const chunks = [];
+  mr.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+  mr.onstop = () => {
+    if (dest) { try { master.disconnect(dest); } catch { /* already gone */ } }
+    stream.getTracks().forEach((tr) => tr.stop());
+    const type = (mr.mimeType || mime || 'video/webm').split(';')[0];
+    if (chunks.length) showShot(new Blob(chunks, { type }), 'video');
+  };
+  mr.start(250);
+  rec = { mr, ctx, w, h, t0: performance.now() };
+  track('video');
+  $('recBtn').classList.add('recording');
+  $('recLabel').textContent = '● 0s';
+}
+
+function stopRec() {
+  if (!rec) return;
+  const r = rec;
+  rec = null;
+  $('recBtn').classList.remove('recording');
+  $('recLabel').textContent = 'Video';
+  if (r.mr.state !== 'inactive') r.mr.stop();
+}
+
+function recFrame() {
+  if (!rec) return;
+  paintFrame(rec.ctx, rec.w, rec.h);
+  const sec = (performance.now() - rec.t0) / 1000;
+  $('recLabel').textContent = `● ${Math.floor(sec)}s`;
+  if (sec >= REC_MAX) stopRec();
 }
 
 // ── Mic blow detection ──────────────────────────────────────────
@@ -1295,6 +1721,7 @@ function showCard() {
   }
   $('card').classList.remove('min');
   $('card').hidden = false;
+  arTip('Tap 📸 Photo or 🎥 Video to share it! ✨', 5000);
 }
 
 async function replay() {
@@ -1400,8 +1827,9 @@ $('makeOwn').addEventListener('click', (e) => {
   location.href = `${CREATE_URL}#k=bday`;
 });
 
-$('shotShare').addEventListener('click', sharePhoto);
-$('shotClose').addEventListener('click', () => { $('shot').hidden = true; });
+$('shotShare').addEventListener('click', shareShot);
+$('shotClose').addEventListener('click', () => { $('shot').hidden = true; $('shotVid').pause(); });
+$('recBtn').addEventListener('click', () => (rec ? stopRec() : startRec()));
 
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
@@ -1447,9 +1875,16 @@ function frame() {
     warmLight.intensity = glow * 0.9 * (1 - micLevel * 0.4);
   } else if (ty.opened) {
     ty.heart.rotation.y = Math.sin(t * 0.9) * 0.5;
-    if (ty.heart.scale.x > 0.9) ty.heart.scale.setScalar(1 + Math.max(0, Math.sin(t * 5.2)) * 0.05);
+    if (W.item === 'heart' && ty.heart.scale.x > 0.9) ty.heart.scale.setScalar(1 + Math.max(0, Math.sin(t * 5.2)) * 0.05);
+    for (const s of steamPuffs) {
+      const u = s.userData;
+      const k = (t * u.speed + u.phase) % 1;
+      s.position.set(u.x + Math.sin(t * 2 + u.seed) * 0.04, u.y + k * 0.5, u.z);
+      s.scale.setScalar(0.12 + k * 0.28);
+      s.material.opacity = 0.4 * Math.sin(k * Math.PI);
+    }
     ty.heartGlow.position.copy(ty.heart.position);
-    ty.text.position.y = 2.45 + Math.sin(t * 1.2) * 0.04;
+    ty.text.position.y = 2.65 + Math.sin(t * 1.2) * 0.04;
   }
 
   for (const b of balloons) {
@@ -1529,6 +1964,7 @@ function frame() {
     controls.update();
   }
   renderer.render(scene, camera);
+  recFrame();
   requestAnimationFrame(frame);
 }
 
@@ -1538,7 +1974,9 @@ function frame() {
     $('introEmoji').textContent = '💌';
     $('introTitle').textContent = W.demo
       ? 'Preview: this is what they will see 💖'
-      : `Hey ${W.to}! 💖 ${W.from || 'Someone'} sent you a thank-you gift!`;
+      : ITEM.label
+        ? `Hey ${W.to}! ${ITEM.emoji} ${W.from || 'Someone'} says thank you for ${ITEM.label}!`
+        : `Hey ${W.to}! 💖 ${W.from || 'Someone'} sent you a thank-you gift!`;
   } else {
     $('introTitle').textContent = W.demo
       ? 'Preview: this is what your friend will see ✨'

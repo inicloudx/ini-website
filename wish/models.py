@@ -24,6 +24,8 @@ class WishEvent(models.Model):
         ('selfie', 'Selfie view'),
         ('photo', 'Took photo'),
         ('photo_share', 'Shared photo'),
+        ('video', 'Recorded video'),
+        ('video_share', 'Shared video'),
         ('replay', 'Replay'),
         ('send_back', 'Tapped say thank you'),
         ('create_open', 'Creator opened'),
