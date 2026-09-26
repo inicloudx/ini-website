@@ -33,7 +33,13 @@
   <div id="stage"></div>
 
   <button id="mute" class="icon-btn" aria-label="Sound on/off" hidden>🔊</button>
-  <button id="exitRoom" class="pill-btn top-left" hidden>✕ Exit room view</button>
+  <div id="roomBar" class="room-bar" hidden>
+    <p id="roomTip" class="room-tip"></p>
+    <div class="card-row">
+      <button id="recenter" class="pill-btn">🎯 Re-center</button>
+      <button id="exitRoom" class="pill-btn">✕ Exit room view</button>
+    </div>
+  </div>
 
   <!-- 1. Gift intro -->
   <section id="intro" class="overlay">
@@ -64,9 +70,10 @@
       <button id="roomBtn" class="pill-btn">📷 See it in my room</button>
       <button id="replayBtn" class="pill-btn">🔁 Replay</button>
     </div>
+    <a class="make-own" href="{% url 'wish:create' %}">✨ Make your own AR wish — free</a>
   </section>
 
-  <a id="brand" class="brand" href="{% url 'wish:create' %}">✨ Make your own AR wish · iNiXR</a>
+  <a id="brand" class="brand" href="{% url 'wish:create' %}">✨ Make your own AR wish</a>
 
   <noscript><p class="noscript">Please enable JavaScript to open your gift.</p></noscript>
   <script type="module" src="{% static 'wish/wish.js' %}"></script>

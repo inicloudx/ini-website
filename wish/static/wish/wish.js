@@ -724,64 +724,130 @@ function updateMic(dt) {
 }
 
 // ── Room view (camera + gyro "magic window") ────────────────────
+// The camera feed is drawn as the 3D scene's background (not a <video> behind the canvas),
+// so the cake is always composited on top — some Android phones put <video> above WebGL.
+const ROOM_SCALE = 0.38;
 const video = $('cam');
 let camStream = null;
+let videoTex = null;
 let saved = null;
+let inRoom = false;
+const roomTarget = new THREE.Vector3();
 const devQ = new THREE.Quaternion(), startQ = new THREE.Quaternion(), baseQ = new THREE.Quaternion();
-let orientReady = false, orientStarted = false;
+let orientReady = false, orientStarted = false, gyroTimer = 0;
 
 const _e = new THREE.Euler(), _q0 = new THREE.Quaternion();
 const _q1 = new THREE.Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5));
 const _z = new THREE.Vector3(0, 0, 1);
 function onOrient(ev) {
-  if (ev.alpha == null) return;
+  if (ev.alpha == null || ev.beta == null) return;
   const d = THREE.MathUtils.degToRad;
   const orient = d((screen.orientation && screen.orientation.angle) || window.orientation || 0);
   _e.set(d(ev.beta), d(ev.alpha), -d(ev.gamma), 'YXZ');
   devQ.setFromEuler(_e).multiply(_q1).multiply(_q0.setFromAxisAngle(_z, -orient));
   if (!orientStarted) { startQ.copy(devQ); orientStarted = true; }
-  orientReady = true;
+  if (!orientReady) {
+    orientReady = true;
+    controls.enabled = false;        // gyro takes over from finger-drag
+    $('roomTip').textContent = 'Move your phone slowly to look around 📱';
+  }
+}
+
+function fitVideoBackground() {
+  if (!videoTex || !video.videoWidth) return;
+  const va = video.videoWidth / video.videoHeight;
+  const sa = innerWidth / innerHeight;
+  if (sa < va) {
+    const r = sa / va;
+    videoTex.repeat.set(r, 1);
+    videoTex.offset.set((1 - r) / 2, 0);
+  } else {
+    const r = va / sa;
+    videoTex.repeat.set(1, r);
+    videoTex.offset.set(0, (1 - r) / 2);
+  }
+}
+
+// Phone cameras see ~60° vertically in portrait; matching it keeps the cake "anchored" as you turn.
+const ROOM_FOV = 62, VIEW_FOV = 40;
+function placeRoomCamera() {
+  camera.fov = ROOM_FOV;
+  camera.updateProjectionMatrix();
+  const fovRatio = Math.tan(THREE.MathUtils.degToRad(VIEW_FOV / 2)) / Math.tan(THREE.MathUtils.degToRad(ROOM_FOV / 2));
+  const d = framingDistance() * ROOM_SCALE * fovRatio * 1.15;
+  const elev = THREE.MathUtils.degToRad(24);
+  roomTarget.set(0, 1.0 * ROOM_SCALE, 0);
+  camera.position.set(0, roomTarget.y + Math.sin(elev) * d, Math.cos(elev) * d);
+  camera.lookAt(roomTarget);
+  baseQ.copy(camera.quaternion);
+  controls.target.copy(roomTarget);
+  controls.minDistance = d * 0.5;
+  controls.maxDistance = d * 2.2;
+  controls.update();
+}
+
+function recenter() {
+  orientStarted = false;             // next gyro reading becomes "straight ahead"
+  placeRoomCamera();
 }
 
 async function enterRoom() {
   track('room');
+  // iOS asks for motion permission; it must be requested inside the tap, before any await.
+  const gyroAsk = (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function')
+    ? DeviceOrientationEvent.requestPermission().catch(() => 'denied')
+    : Promise.resolve('granted');
   try {
     camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
   } catch {
     $('roomBtn').textContent = '📷 Camera not allowed';
     return;
   }
-  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-    try { await DeviceOrientationEvent.requestPermission(); } catch { /* gyro optional */ }
-  }
+  await gyroAsk;
   video.srcObject = camStream;
-  try { await video.play(); } catch { /* autoplay muted should pass */ }
+  try { await video.play(); } catch { /* muted inline video should play */ }
+
+  videoTex = new THREE.VideoTexture(video);
+  videoTex.colorSpace = THREE.SRGBColorSpace;
+  scene.background = videoTex;
+  video.onloadedmetadata = fitVideoBackground;
+  fitVideoBackground();
+
+  inRoom = true;
   document.body.classList.add('room');
   $('card').hidden = true;
-  $('exitRoom').hidden = false;
+  $('roomBar').hidden = false;
+  $('roomTip').textContent = 'Drag to look around the cake 👆';
 
   saved = { pos: camera.position.clone(), q: camera.quaternion.clone() };
-  controls.enabled = false;
-  world.scale.setScalar(0.38);
-  camera.position.set(0, 1.25, 1.9);
-  camera.lookAt(0, 0.45, 0);
-  baseQ.copy(camera.quaternion);
+  world.scale.setScalar(ROOM_SCALE);
+  placeRoomCamera();
+  controls.enabled = true;           // finger-drag until the gyro reports in
   orientStarted = false;
   orientReady = false;
   window.addEventListener('deviceorientation', onOrient);
 }
 
 function exitRoom() {
+  inRoom = false;
   window.removeEventListener('deviceorientation', onOrient);
   if (camStream) camStream.getTracks().forEach((t) => t.stop());
   camStream = null;
   video.srcObject = null;
+  scene.background = null;
+  if (videoTex) videoTex.dispose();
+  videoTex = null;
   document.body.classList.remove('room');
   world.scale.setScalar(1);
+  camera.fov = VIEW_FOV;
+  camera.updateProjectionMatrix();
+  controls.target.copy(TARGET);
+  controls.minDistance = 3;
+  controls.maxDistance = 14;
   if (saved) { camera.position.copy(saved.pos); camera.quaternion.copy(saved.q); }
   controls.enabled = true;
   controls.update();
-  $('exitRoom').hidden = true;
+  $('roomBar').hidden = true;
   $('card').hidden = false;
 }
 
@@ -879,11 +945,13 @@ $('replayBtn').addEventListener('click', async () => {
 
 $('roomBtn').addEventListener('click', enterRoom);
 $('exitRoom').addEventListener('click', exitRoom);
+$('recenter').addEventListener('click', recenter);
 
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
+  fitVideoBackground();
 });
 
 // ── Loop ────────────────────────────────────────────────────────
@@ -974,8 +1042,8 @@ function frame() {
     smokeMats[i].opacity = 0.45 * (1 - k);
   });
 
-  if (document.body.classList.contains('room')) {
-    if (orientReady) camera.quaternion.copy(baseQ).multiply(startQ.clone().invert().multiply(devQ));
+  if (inRoom && orientReady) {
+    camera.quaternion.copy(baseQ).multiply(startQ.clone().invert().multiply(devQ));
   } else {
     controls.update();
   }
