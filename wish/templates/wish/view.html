@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#1a0b2e">
-  <title>A birthday surprise for you 🎁</title>
-  <meta name="description" content="Someone special sent you a 3D birthday cake. Tap to open!">
+  <title>{{ page_title }}</title>
+  <meta name="description" content="{{ og_desc }}">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="🎁 A birthday surprise is waiting for you!">
-  <meta property="og:description" content="Tap to open your 3D birthday cake 🎂 Blow out the candles!">
+  <meta property="og:title" content="{{ og_title }}">
+  <meta property="og:description" content="{{ og_desc }}">
   <meta property="og:image" content="{{ og_image }}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+Thambi+2:wght@500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'wish/wish.css' %}?v=3">
+  <link rel="stylesheet" href="{% static 'wish/wish.css' %}?v=4">
   <script type="importmap">
   {
     "imports": {
@@ -28,54 +28,74 @@
   }
   </script>
 </head>
-<body data-evt="{% url 'wish:track' %}" data-create="{% url 'wish:create' %}">
+<body class="kind-{{ kind }}" data-kind="{{ kind }}" data-evt="{% url 'wish:track' %}" data-create="{% url 'wish:create' %}">
   <video id="cam" playsinline muted autoplay></video>
   <div id="stage"></div>
+  <div id="flash" class="flash"></div>
 
+  <a id="brand" class="brand" href="{% url 'wish:create' %}">✨ Make your own AR wish</a>
   <button id="mute" class="icon-btn" aria-label="Sound on/off" hidden>🔊</button>
-  <div id="roomBar" class="room-bar" hidden>
-    <p id="roomTip" class="room-tip"></p>
-    <div class="card-row">
-      <button id="recenter" class="pill-btn">🎯 Re-center</button>
-      <button id="exitRoom" class="pill-btn">✕ Exit room view</button>
-    </div>
-  </div>
+
+  <!-- Camera / capture tools -->
+  <nav id="tools" class="tools" hidden>
+    <button class="tool" data-mode="room" aria-label="See it in my room"><span>📷</span>Room</button>
+    <button class="tool" data-mode="selfie" aria-label="Selfie with it"><span>🤳</span>Selfie</button>
+    <button class="tool" data-mode="3d" aria-label="3D view"><span>🧊</span>3D</button>
+    <button class="tool" id="recenter" aria-label="Re-center" hidden><span>🎯</span>Center</button>
+    <button class="tool snap" id="snapBtn" aria-label="Take photo"><span>📸</span>Photo</button>
+  </nav>
+  <p id="arTip" class="ar-tip" hidden></p>
 
   <!-- 1. Gift intro -->
   <section id="intro" class="overlay">
-    <div class="gift" aria-hidden="true">🎁</div>
+    <div class="gift" id="introEmoji" aria-hidden="true">🎁</div>
     <h1 id="introTitle">Someone special sent you a surprise!</h1>
-    <p class="sub">Turn your sound on 🔊</p>
+    <p class="sub" id="introSub">Turn your sound on 🔊</p>
     <button id="openBtn" class="big-btn">Open my gift ✨</button>
+    <p class="cam-note">📷 Allow the camera to see it appear in your room</p>
   </section>
 
   <!-- 2. Lyrics / hints -->
   <div id="lyric" class="lyric" aria-live="polite"></div>
   <div id="hint" class="hint" hidden>
-    <p id="hintText">Make a wish… and blow out the candles! 🌬️</p>
+    <p id="hintText"></p>
     <div id="meter" class="meter"><i></i></div>
     <div class="hint-actions">
-      <button id="micBtn" class="big-btn">🎤 Blow with mic</button>
-      <button id="tapBtn" class="link-btn">or tap here to blow</button>
+      <button id="hintMain" class="big-btn"></button>
+      <button id="hintAlt" class="link-btn" hidden></button>
     </div>
   </div>
 
   <!-- 3. Message card -->
   <section id="card" class="card" hidden>
-    <p class="card-to" id="cardTo"></p>
-    <p class="card-msg" id="cardMsg"></p>
-    <p class="card-from" id="cardFrom"></p>
-    <button id="sendBack" class="big-btn">🎁 Send a wish back</button>
+    <button id="cardToggle" class="card-toggle" aria-label="Hide message">▾</button>
+    <div class="card-body">
+      <p class="card-to" id="cardTo"></p>
+      <p class="card-msg" id="cardMsg"></p>
+      <p class="card-from" id="cardFrom"></p>
+    </div>
+    <button id="primaryBtn" class="big-btn"></button>
     <div class="card-row">
-      <button id="roomBtn" class="pill-btn">📷 See it in my room</button>
+      <button id="selfieBtn" class="pill-btn">🤳 Selfie with it</button>
       <button id="replayBtn" class="pill-btn">🔁 Replay</button>
     </div>
-    <a class="make-own" href="{% url 'wish:create' %}">✨ Make your own AR wish — free</a>
+    <a class="make-own" id="makeOwn" href="{% url 'wish:create' %}">✨ Make your own AR wish — free</a>
   </section>
 
-  <a id="brand" class="brand" href="{% url 'wish:create' %}">✨ Make your own AR wish</a>
+  <!-- 4. Photo preview -->
+  <section id="shot" class="shot" hidden>
+    <img id="shotImg" alt="Your photo">
+    <div class="shot-actions">
+      <button id="shotShare" class="big-btn wa">Share on WhatsApp</button>
+      <div class="card-row">
+        <a id="shotSave" class="pill-btn" download="inixr-wish.jpg">⬇️ Save</a>
+        <button id="shotClose" class="pill-btn">✕ Close</button>
+      </div>
+    </div>
+  </section>
 
+  <div id="toast" class="toast"></div>
   <noscript><p class="noscript">Please enable JavaScript to open your gift.</p></noscript>
-  <script type="module" src="{% static 'wish/wish.js' %}?v=3"></script>
+  <script type="module" src="{% static 'wish/wish.js' %}?v=4"></script>
 </body>
 </html>

@@ -17,20 +17,20 @@
   </style>
 </head>
 <body>
-  <h1>🎂 Birthday wish test</h1>
+  <h1>🎂 AR wish test</h1>
   <div class="kpi">
     <div><b>{{ opened }}</b>wishes opened</div>
-    <div><b>{{ sent_back }}</b>led to a wish back</div>
-    <div><b>{{ reciprocity }}%</b>send-back rate</div>
+    <div><b>{{ sent_back }}</b>got a thank-you back</div>
+    <div><b>{{ reciprocity }}%</b>reply rate</div>
   </div>
   <table>
-    <thead><tr><th>Step</th><th class="n">Events</th><th class="n">Distinct wishes</th></tr></thead>
+    <thead><tr><th>Step</th><th class="n">🎂 Birthday</th><th class="n">💖 Thank you</th></tr></thead>
     <tbody>
-      {% for label, total, wishes in table %}
-      <tr><td>{{ label }}</td><td class="n">{{ total }}</td><td class="n">{{ wishes }}</td></tr>
+      {% for label, bday, ty in table %}
+      <tr><td>{{ label }}</td><td class="n">{{ bday }}</td><td class="n">{{ ty }}</td></tr>
       {% endfor %}
     </tbody>
   </table>
-  <p><small>Anonymous counts only — no names or messages are stored. Target: send-back rate above 15–20%.</small></p>
+  <p><small>Anonymous counts only — no names or messages are stored. Target: reply rate above 15–20%.</small></p>
 </body>
 </html>
