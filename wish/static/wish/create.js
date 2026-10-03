@@ -190,8 +190,17 @@
   if (hash.get('t')) $('to').value = hash.get('t').slice(0, 24);
   history.replaceState(null, '', location.pathname);
 
+  // Owner's own phone: ?me=1 once stops counting it (?me=0 to undo).
+  var ME = false;
+  try {
+    var meQ = new URLSearchParams(location.search).get('me');
+    if (meQ === '1') localStorage.setItem('wish_me', '1');
+    if (meQ === '0') localStorage.removeItem('wish_me');
+    ME = localStorage.getItem('wish_me') === '1';
+  } catch (err) { /* private mode */ }
+
   function track(e, wid) {
-    if (!EVT_URL) return;
+    if (ME || !EVT_URL) return;
     var body = JSON.stringify({ e: e, k: kind, i: wid || '', r: ref });
     try {
       if (navigator.sendBeacon) navigator.sendBeacon(EVT_URL, new Blob([body], { type: 'text/plain' }));

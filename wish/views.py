@@ -1,13 +1,16 @@
+import datetime
 import json
 import re
 
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count
+from django.db.models.functions import TruncDate
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render
 from django.templatetags.static import static
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -103,23 +106,80 @@ def track(request):
     return HttpResponse(status=204)
 
 
+# Friendlier names for the stats page (model labels kept as-is to avoid a migration).
+_LABELS = {
+    'gift_open': 'Opened the gift',
+    'send_back': 'Tapped "send something back"',
+    'start': 'Tapped open',
+    'react': 'Sent a quick reaction',
+}
+_PERIODS = [('today', 'Today'), ('7d', 'Last 7 days'), ('30d', 'Last 30 days'), ('all', 'All time')]
+
+
 @staff_member_required
 def stats(request):
-    rows = WishEvent.objects.values('event', 'kind').annotate(total=Count('id'))
+    today = timezone.localdate()
+    period = request.GET.get('p', '7d')
+    since = None
+    since_param = request.GET.get('since', '')
+    if since_param:
+        try:
+            since = datetime.date.fromisoformat(since_param)
+            period = 'since'
+        except ValueError:
+            since = None
+    if since is None:
+        since = {'today': today, '7d': today - datetime.timedelta(days=6),
+                 '30d': today - datetime.timedelta(days=29)}.get(period)
+        if period not in dict(_PERIODS):
+            period, since = '7d', today - datetime.timedelta(days=6)
+
+    events = WishEvent.objects.all()
+    if since:
+        events = events.filter(created_at__date__gte=since)
+
+    # Funnel table per gift type
     counts = {}
-    for r in rows:
+    for r in events.values('event', 'kind').annotate(total=Count('id')):
         counts.setdefault(r['event'], {})[r['kind'] or 'bday'] = r['total']
-    table = [(label, counts.get(key, {}).get('bday', 0), counts.get(key, {}).get('ty', 0), counts.get(key, {}).get('rx', 0), counts.get(key, {}).get('aw', 0))
+    table = [(_LABELS.get(key, label),) + tuple(counts.get(key, {}).get(k, 0) for k in ('bday', 'ty', 'rx', 'aw'))
              for key, label in WishEvent.EVENTS]
 
-    opened = set(WishEvent.objects.filter(event='start')
-                 .exclude(wid='').values_list('wid', flat=True))
-    replied = set(WishEvent.objects.filter(event='link_created').exclude(ref='')
-                  .values_list('ref', flat=True))
+    # Headline numbers
+    opened = set(events.filter(event='start').exclude(wid='').values_list('wid', flat=True))
+    replied = set(WishEvent.objects.filter(event='link_created').exclude(ref='').values_list('ref', flat=True))
     reply_rate = (len(opened & replied) / len(opened) * 100) if opened else 0
+    created = events.filter(event='link_created').count()
+
+    # Day by day (newest first)
+    def per_day(qs):
+        return {r['d']: r['n'] for r in qs.annotate(d=TruncDate('created_at')).values('d').annotate(n=Count('id'))}
+    first = since or (events.order_by('created_at').values_list('created_at', flat=True).first() or timezone.now()).date()
+    first = max(first, today - datetime.timedelta(days=59))
+    opens_d = per_day(events.filter(event='start'))
+    made_d = per_day(events.filter(event='link_created'))
+    replies_d = per_day(events.filter(event='link_created').exclude(ref=''))
+    shares_d = per_day(events.filter(event__in=['wa_share', 'copy']))
+    media_d = per_day(events.filter(event__in=['photo_share', 'video_share']))
+    days = []
+    d = today
+    while d >= first:
+        days.append({'date': d, 'opened': opens_d.get(d, 0), 'created': made_d.get(d, 0),
+                     'replies': replies_d.get(d, 0), 'shared': shares_d.get(d, 0), 'media': media_d.get(d, 0)})
+        d -= datetime.timedelta(days=1)
+    peak = max([x['opened'] for x in days] + [x['created'] for x in days] + [1])
+    for x in days:
+        x['opened_pct'] = round(x['opened'] / peak * 100)
+        x['created_pct'] = round(x['created'] / peak * 100)
+
     return render(request, 'wish/stats.html', {
         'table': table,
         'opened': len(opened),
         'sent_back': len(opened & replied),
         'reciprocity': round(reply_rate, 1),
+        'created': created,
+        'days': days,
+        'periods': _PERIODS,
+        'period': period,
+        'since': since,
     })

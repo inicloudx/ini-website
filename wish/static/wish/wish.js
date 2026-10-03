@@ -111,8 +111,18 @@ const HEARTY = IS_TY || IS_RX;          // thank-you + reactions share the heart
 const ITEM = ITEM_INFO[W.item];
 const REACT = REACTS[W.react || 'love'];
 
+// Owner's own phone: open any /wish/ page once with ?me=1 to stop counting it (?me=0 to undo).
+const ME = (() => {
+  try {
+    const q = new URLSearchParams(location.search).get('me');
+    if (q === '1') localStorage.setItem('wish_me', '1');
+    if (q === '0') localStorage.removeItem('wish_me');
+    return localStorage.getItem('wish_me') === '1';
+  } catch { return false; }
+})();
+
 function track(e) {
-  if (W.demo || W.preview || !EVT_URL) return;
+  if (ME || W.demo || W.preview || !EVT_URL) return;
   const body = JSON.stringify({ e, k: W.kind, i: W.id, r: '' });
   try {
     if (navigator.sendBeacon) navigator.sendBeacon(EVT_URL, new Blob([body], { type: 'text/plain' }));
@@ -1998,14 +2008,27 @@ async function shareShot() {
     : HEARTY
     ? `Look what I got ${IS_RX ? REACT.emoji : '💖'} Want to send one too? Tap 👉 https://inixr.com/wish/create/`
     : 'Look at my birthday surprise 🎂 Want to send one too? Tap 👉 https://inixr.com/wish/create/';
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try {
-      await navigator.share({ files: [file], text });
-      track(shot.kind === 'video' ? 'video_share' : 'photo_share');
-    } catch { /* user cancelled */ }
-  } else {
+  const done = () => track(shot.kind === 'video' ? 'video_share' : 'photo_share');
+  const saveInstead = (why) => {
     $('shotSave').click();
-    toast('Saved — share it from your gallery 📲');
+    toast(why || 'Saved to your phone — share it from your gallery 📲', 3500);
+  };
+  if (!navigator.canShare || !navigator.canShare({ files: [file] })) {
+    saveInstead(shot.kind === 'video' ? 'Video saved — share it from your gallery 📲' : '');
+    return;
+  }
+  try {
+    await navigator.share({ files: [file], text });   // most phones: file + invite caption
+    done();
+  } catch (err) {
+    if (err && err.name === 'AbortError') return;      // user closed the share sheet
+    try {
+      await navigator.share({ files: [file] });         // some apps reject file + text together
+      done();
+    } catch (err2) {
+      if (err2 && err2.name === 'AbortError') return;
+      saveInstead();
+    }
   }
 }
 
@@ -2372,7 +2395,7 @@ function b64url(str) {
   return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 function beacon(payload) {
-  if (!EVT_URL || W.demo || W.preview) return;
+  if (ME || !EVT_URL || W.demo || W.preview) return;
   try { navigator.sendBeacon(EVT_URL, new Blob([JSON.stringify(payload)], { type: 'text/plain' })); } catch { /* ignore */ }
 }
 
@@ -2586,6 +2609,9 @@ function frame() {
       : `Hey ${W.to}! 🎉 You've got a birthday surprise!`;
   }
   track('open');
+  const meParam = new URLSearchParams(location.search).get('me');
+  if (meParam === '1') toast('✅ This phone won’t be counted in stats', 3500);
+  if (meParam === '0') toast('This phone is counted in stats again', 3500);
   place3D();
   try {
     await Promise.race([document.fonts.load(`800 100px ${FONT}`), wait(2500)]);

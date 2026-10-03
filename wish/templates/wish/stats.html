@@ -4,33 +4,79 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
-  <title>Wish test stats</title>
+  <title>Wish stats</title>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 560px; margin: 24px auto; padding: 0 16px; color: #222; }
-    .kpi { display: flex; gap: 12px; margin: 16px 0 24px; }
-    .kpi div { flex: 1; background: #f5f0fa; border-radius: 12px; padding: 12px; }
-    .kpi b { display: block; font-size: 1.8rem; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid #eee; }
-    td.n { text-align: right; font-variant-numeric: tabular-nums; }
-    small { color: #777; }
+    body { font-family: system-ui, sans-serif; max-width: 620px; margin: 24px auto; padding: 0 16px; color: #222; }
+    h2 { font-size: 1.1rem; margin: 28px 0 8px; }
+    .periods { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 8px 0 4px; }
+    .periods a { padding: 6px 12px; border-radius: 999px; background: #f1ecf6; color: #4a2a6a; text-decoration: none; font-size: 0.9rem; }
+    .periods a.on { background: #6a1b9a; color: #fff; }
+    .periods form { display: flex; gap: 4px; align-items: center; font-size: 0.9rem; }
+    .periods input { font: inherit; padding: 4px; }
+    .kpi { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 16px 0 8px; }
+    .kpi div { background: #f5f0fa; border-radius: 12px; padding: 10px; font-size: 0.85rem; }
+    .kpi b { display: block; font-size: 1.6rem; }
+    @media (max-width: 480px) { .kpi { grid-template-columns: repeat(2, 1fr); } }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { text-align: left; padding: 7px 5px; border-bottom: 1px solid #eee; }
+    td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+    .bar { height: 8px; border-radius: 4px; background: #e0d4ee; min-width: 2px; }
+    .bar.o { background: #ab47bc; }
+    .bar.c { background: #ffb300; margin-top: 3px; }
+    td.chart { width: 34%; }
+    tr.zero td { color: #bbb; }
+    small, .note { color: #777; }
+    .legend span { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin: 0 4px 0 10px; }
   </style>
 </head>
 <body>
-  <h1>🎂 AR wish test</h1>
+  <h1>🎁 AR wish stats</h1>
+
+  <div class="periods">
+    {% for key, label in periods %}
+      <a href="?p={{ key }}" class="{% if period == key %}on{% endif %}">{{ label }}</a>
+    {% endfor %}
+    <form method="get">
+      <label>since <input type="date" name="since" value="{% if period == 'since' %}{{ since|date:'Y-m-d' }}{% endif %}"></label>
+      <button>Go</button>
+    </form>
+  </div>
+  <p class="note">{% if since %}Showing activity since {{ since|date:"j M Y" }}.{% else %}Showing all activity.{% endif %}
+    Your own phone isn’t counted after you open <code>inixr.com/wish/?me=1</code> once.</p>
+
   <div class="kpi">
-    <div><b>{{ opened }}</b>wishes opened</div>
+    <div><b>{{ opened }}</b>gifts opened</div>
+    <div><b>{{ created }}</b>new links made</div>
     <div><b>{{ sent_back }}</b>got a reply back</div>
     <div><b>{{ reciprocity }}%</b>reply rate</div>
   </div>
+
+  <h2>📅 Day by day</h2>
+  <p class="legend"><small><span style="background:#ab47bc"></span>opened <span style="background:#ffb300"></span>new links made</small></p>
   <table>
-    <thead><tr><th>Step</th><th class="n">🎂 Birthday</th><th class="n">💖 Thank you</th><th class="n">💞 Reaction</th><th class="n">🏆 Award</th></tr></thead>
+    <thead><tr><th>Day</th><th class="n">Opened</th><th class="n">Made</th><th class="n">Replies</th><th class="n">Shared</th><th class="n">Photo/video shared</th><th></th></tr></thead>
+    <tbody>
+      {% for d in days %}
+      <tr class="{% if not d.opened and not d.created %}zero{% endif %}">
+        <td>{{ d.date|date:"D j M" }}</td>
+        <td class="n">{{ d.opened }}</td><td class="n">{{ d.created }}</td><td class="n">{{ d.replies }}</td>
+        <td class="n">{{ d.shared }}</td><td class="n">{{ d.media }}</td>
+        <td class="chart"><div class="bar o" style="width:{{ d.opened_pct }}%"></div><div class="bar c" style="width:{{ d.created_pct }}%"></div></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>🔍 Each step, by gift type</h2>
+  <table>
+    <thead><tr><th>Step</th><th class="n">🎂</th><th class="n">💖</th><th class="n">💞</th><th class="n">🏆</th></tr></thead>
     <tbody>
       {% for label, bday, ty, rx, aw in table %}
       <tr><td>{{ label }}</td><td class="n">{{ bday }}</td><td class="n">{{ ty }}</td><td class="n">{{ rx }}</td><td class="n">{{ aw }}</td></tr>
       {% endfor %}
     </tbody>
   </table>
-  <p><small>Anonymous counts only — no names or messages are stored. Target: reply rate above 15–20%.</small></p>
+  <p><small>🎂 Birthday · 💖 Thank you · 💞 Reaction · 🏆 Award. “Creator opened” is counted under the tab the page starts on.
+    Anonymous counts only — no names or messages are stored. Target reply rate: above 15–20%.</small></p>
 </body>
 </html>
